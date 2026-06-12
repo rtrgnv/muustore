@@ -39,7 +39,7 @@
             background-color: #ecfdf5;
         }
         .collapsible-header-element {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: flex 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, max-height 0.3s ease;
             max-height: 200px;
             opacity: 1;
             overflow: hidden;
@@ -276,7 +276,7 @@
                 </div>
             </aside>
 
-            <!-- 📄 ДИНАМИЧЕСКИЙ КОНТЕНТ -->
+            <!-- 📄 ОСНОВНОЙ КОНТЕНТ -->
             <main class="flex-1 overflow-y-auto px-4 lg:px-0 pb-24 lg:pb-6" id="main-scroll-container">
 
                 <section id="categories-section" class="mb-5">
@@ -583,9 +583,72 @@
             appId: "1:392304749852:web:4634b7fd54c04d6be11ed9"
         };
 
-        // Инициализация базы
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // --- АВАРИЙНЫЙ РЕЖИМ (ЗАЩИТА ОТ ЗАВИСАНИЙ И ОТСУТСТВИЯ СВЯЗИ) ---
+        let database;
+        let isCloudActive = false;
+        const STORAGE_KEY = 'agromarket_listings_v3_9';
+
+        try {
+            // Если databaseURL не настроен или пропущен в конфиге, подставляем вычисленный по projectId
+            if (!firebaseConfig.databaseURL) {
+                firebaseConfig.databaseURL = `https://${firebaseConfig.projectId}-default-rtdb.firebaseio.com`;
+            }
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            isCloudActive = true;
+            console.log("Firebase Cloud успешно подключен к muu.kg.");
+        } catch (e) {
+            console.warn("Firebase не смог запуститься. Активирован локальный оффлайн-режим (LocalStorage):", e);
+            // Создание Mock-объекта базы данных для предотвращения ошибок UI и блокировки кнопок
+            database = {
+                ref: function(path) {
+                    return {
+                        on: function(event, callback) {
+                            setTimeout(() => {
+                                if (path === 'listings') {
+                                    const stored = localStorage.getItem(STORAGE_KEY);
+                                    const listingsData = stored ? JSON.parse(stored) : null;
+                                    // Конвертируем обратно в объект-базу для совместимости
+                                    const mockObj = {};
+                                    if (listingsData) {
+                                        listingsData.forEach((item, idx) => { mockObj[`mock_key_${idx}`] = item; });
+                                    }
+                                    callback({ val: () => mockObj });
+                                } else if (path === 'median_prices') {
+                                    const storedMedians = localStorage.getItem('agromarket_median_prices');
+                                    callback({ val: () => storedMedians ? JSON.parse(storedMedians) : null });
+                                } else {
+                                    callback({ val: () => null });
+                                }
+                            }, 50);
+                        },
+                        once: function(event, callback) {
+                            let value = null;
+                            if (path === 'banned_authors') {
+                                value = JSON.parse(localStorage.getItem('agromarket_banned_authors') || '[]');
+                            } else if (path === 'verified_authors') {
+                                value = JSON.parse(localStorage.getItem('agromarket_verified_authors') || '[]');
+                            }
+                            const snap = { val: () => value };
+                            if (callback) callback(snap);
+                            return Promise.resolve(snap);
+                        },
+                        push: function(data) {
+                            const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                            stored.unshift(data);
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+                            return Promise.resolve({ key: 'mock_key_' + Date.now() });
+                        },
+                        update: function(data) {
+                            return Promise.resolve();
+                        },
+                        remove: function() {
+                            return Promise.resolve();
+                        }
+                    };
+                }
+            };
+        }
 
         let currentTab = 'feed'; let selectedCategory = 'all'; let selectedDistrict = 'all'; let selectedSettlement = 'all'; let searchQuery = '';
         let pendingConfirmAction = null; let selectedImageBase64 = null; let selectedAvatarBase64 = null;
@@ -594,6 +657,10 @@
         let currentUser = { name: 'Арсен', phone: '555 123 456', bio: '', rating: 4.9, district: 'Ошская обл.', settlement: 'г. Ош', avatar: null };
         let MEDIAN_MARKET_PRICES = { cows: 105000, sheep: 15000, horses: 130000, feed: 320, tech: 40000 };
         let listings = [];
+        
+        // Локальные реактивные состояния для банов и верификаций (Предотвращают зависание при рендеринге)
+        let bannedAuthors = [];
+        let verifiedAuthors = [];
 
         function calculatePriceAssessment(category, price) {
             const storedMedians = JSON.parse(localStorage.getItem('agromarket_median_prices')) || MEDIAN_MARKET_PRICES;
@@ -608,6 +675,12 @@
                 return { label: 'Рыночная цена', badgeClass: 'bg-amber-100 text-amber-850 border-amber-200', dotColor: 'bg-amber-500', scalePercent: 50 + deviation * 1.2, percentageText: 'Соответствует средней цене' };
             }
         }
+
+        const DEFAULT_LISTINGS = [
+            { id: 999, title: '🔥 АУКЦИОН: Племенной Бык Черный Ангус', category: 'cows', breed: 'Черный Ангус', ageMonths: 24, weight: 420, gender: 'самец', desc: 'Возраст 2 года, вес 420 кг. Племенной производитель.', price: 110000, startPrice: 110000, unit: 'сом', district: 'Ошская обл.', settlement: 'с. Жапалак (Рынок)', phone: '+996 550 111 222', author: 'Талант', isMyListing: false, isAuction: true, isTop: true, views: 247, emoji: '🔥', date: 'Осталось 4 часа', bids: [{ name: 'Улан', amount: 110000, time: '30 мин. назад' }] },
+            { id: 1000, title: '🔥 АУКЦИОН: Элитный Гиссарский Кочкор', category: 'sheep', breed: 'Гиссарская', ageMonths: 18, weight: 95, gender: 'самец', desc: 'Чистокровный племенной гиссарский кочкор.', price: 25000, startPrice: 25000, unit: 'сом', district: 'Джалал-Абадская обл.', settlement: 'г. Базар-Коргон', phone: '+996 777 555 444', author: 'Абдулла', isMyListing: false, isAuction: true, isTop: false, views: 112, emoji: '🐑', date: 'Осталось 6 часов', bids: [{ name: 'Канат', amount: 25000, time: '15 мин. назад' }] },
+            { id: 1, title: 'Бычок, Швицкая порода', category: 'cows', breed: 'Швицкая', ageMonths: 20, weight: 280, gender: 'самец', desc: 'Возраст 1.8 года. Упитанный чистый откорм.', price: 95000, startPrice: 95000, unit: 'сом', district: 'Ошская обл.', settlement: 'с. Араван', phone: '+996 555 123 456', author: 'Карим байке', isMyListing: false, isAuction: false, isTop: false, views: 45, emoji: '🐂', date: 'Сегодня' }
+        ];
 
         window.onload = function() {
             initApp();
@@ -626,7 +699,7 @@
 
             updateProfileView();
 
-            // Безопасное навешивание обработчиков событий
+            // Безопасное навешивание обработчиков событий (Защита от ReferenceError)
             const modalAdd = document.getElementById('add-listing-modal');
             if (modalAdd) modalAdd.onclick = function(e) { if(e.target === this) closeModal(); };
 
@@ -639,7 +712,9 @@
             setupHeaderScrollCollapsing();
         }
 
+        // Высокоскоростное реактивное слушание Firebase Realtime Database
         function listenToFirebaseCloud() {
+            // 1. Слушаем объявления
             database.ref('listings').on('value', (snapshot) => {
                 const data = snapshot.val();
                 listings = [];
@@ -647,17 +722,36 @@
                     Object.keys(data).forEach(key => {
                         listings.push({ fbKey: key, ...data[key] });
                     });
+                } else if (!isCloudActive) {
+                    // Оффлайн фоллбэк: если данных нет в localStorage, ставим дефолтные
+                    listings = [...DEFAULT_LISTINGS];
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
                 }
                 renderListings();
                 updateMyListingsBadge();
             });
 
+            // 2. Слушаем изменения цен
             database.ref('median_prices').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
                     MEDIAN_MARKET_PRICES = data;
                     localStorage.setItem('agromarket_median_prices', JSON.stringify(data));
                 }
+                renderListings();
+            });
+
+            // 3. Слушаем черный список (Не блокирует рендеринг при скролле)
+            database.ref('banned_authors').on('value', (snapshot) => {
+                const data = snapshot.val();
+                bannedAuthors = data ? Object.values(data) : [];
+                renderListings();
+            });
+
+            // 4. Слушаем верифицированных авторов
+            database.ref('verified_authors').on('value', (snapshot) => {
+                const data = snapshot.val();
+                verifiedAuthors = data ? Object.values(data) : [];
                 renderListings();
             });
         }
@@ -710,6 +804,7 @@
 
         function toggleMobileAdvancedFilters() { const adv = document.getElementById('mobile-advanced-filters'); if (adv) adv.classList.toggle('hidden'); }
 
+        // Полностью синхронный рендеринг карточек лотов (Исключает фризы)
         function renderListings() {
             const feedContainer = document.getElementById('listings-feed'); const emptyState = document.getElementById('empty-state');
             if (!feedContainer) return; feedContainer.innerHTML = '';
@@ -725,89 +820,82 @@
             const minWVal = document.getElementById('weight-min') && document.getElementById('weight-min').value ? parseFloat(document.getElementById('weight-min').value) : null;
             const maxWVal = document.getElementById('weight-max') && document.getElementById('weight-max').value ? parseFloat(document.getElementById('weight-max').value) : null;
 
-            database.ref('banned_authors').once('value', (banSnapshot) => {
-                const bannedAuthors = banSnapshot.val() ? Object.values(banSnapshot.val()) : [];
-                database.ref('verified_authors').once('value', (verSnapshot) => {
-                    const verifiedAuthors = verSnapshot.val() ? Object.values(verSnapshot.val()) : [];
+            // Сортировка по TOP статусу
+            const sortedListings = [...listings].sort((a, b) => (a.isTop && !b.isTop) ? -1 : (!a.isTop && b.isTop ? 1 : b.id - a.id));
 
-                    // Сортировка по TOP статусу
-                    const sortedListings = [...listings].sort((a, b) => (a.isTop && !b.isTop) ? -1 : (!a.isTop && b.isTop ? 1 : b.id - a.id));
+            const filtered = sortedListings.filter(item => {
+                if (bannedAuthors.includes(item.author)) return false;
 
-                    const filtered = sortedListings.filter(item => {
-                        if (bannedAuthors.includes(item.author)) return false;
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesDistrict = selectedDistrict === 'all' || item.district === selectedDistrict;
+                const matchesSettlement = selectedSettlement === 'all' || item.settlement === selectedSettlement;
+                const matchesSearch = searchQuery === '' || item.title.toLowerCase().includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
+                const matchesBreed = breedVal === 'all' || (item.breed && item.breed === breedVal);
+                const matchesGender = genderVal === 'all' || (item.gender && item.gender === genderVal);
+                
+                let matchesAge = true;
+                if (ageVal !== 'all') {
+                    if (!item.ageMonths) matchesAge = false;
+                    else if (ageVal === 'young') matchesAge = item.ageMonths < 12;
+                    else if (ageVal === 'mid') matchesAge = item.ageMonths >= 12 && item.ageMonths <= 24;
+                    else if (ageVal === 'adult') matchesAge = item.ageMonths > 24;
+                }
 
-                        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-                        const matchesDistrict = selectedDistrict === 'all' || item.district === selectedDistrict;
-                        const matchesSettlement = selectedSettlement === 'all' || item.settlement === selectedSettlement;
-                        const matchesSearch = searchQuery === '' || item.title.toLowerCase().includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
-                        const matchesBreed = breedVal === 'all' || (item.breed && item.breed === breedVal);
-                        const matchesGender = genderVal === 'all' || (item.gender && item.gender === genderVal);
-                        
-                        let matchesAge = true;
-                        if (ageVal !== 'all') {
-                            if (!item.ageMonths) matchesAge = false;
-                            else if (ageVal === 'young') matchesAge = item.ageMonths < 12;
-                            else if (ageVal === 'mid') matchesAge = item.ageMonths >= 12 && item.ageMonths <= 24;
-                            else if (ageVal === 'adult') matchesAge = item.ageMonths > 24;
-                        }
+                let matchesWeight = true;
+                if (minWVal !== null && (!item.weight || item.weight < minWVal)) matchesWeight = false;
+                if (maxWVal !== null && (!item.weight || item.weight > maxWVal)) matchesWeight = false;
 
-                        let matchesWeight = true;
-                        if (minWVal !== null && (!item.weight || item.weight < minWVal)) matchesWeight = false;
-                        if (maxWVal !== null && (!item.weight || item.weight > maxWVal)) matchesWeight = false;
+                const matchesTab = currentTab !== 'my-listings' || myListingIds.includes(item.id);
+                const matchesAuctionTab = currentTab !== 'auctions' || item.isAuction === true;
 
-                        const matchesTab = currentTab !== 'my-listings' || myListingIds.includes(item.id);
-                        const matchesAuctionTab = currentTab !== 'auctions' || item.isAuction === true;
+                return matchesCategory && matchesDistrict && matchesSettlement && matchesSearch && matchesBreed && matchesGender && matchesAge && matchesWeight && matchesTab && matchesAuctionTab;
+            });
 
-                        return matchesCategory && matchesDistrict && matchesSettlement && matchesSearch && matchesBreed && matchesGender && matchesAge && matchesWeight && matchesTab && matchesAuctionTab;
-                    });
+            document.getElementById('listings-count').innerText = `Показано: ${filtered.length} лотов`;
+            if (filtered.length === 0) { feedContainer.classList.add('hidden'); if (emptyState) emptyState.classList.remove('hidden'); return; }
+            feedContainer.classList.remove('hidden'); if (emptyState) emptyState.classList.add('hidden');
 
-                    document.getElementById('listings-count').innerText = `Показано: ${filtered.length} лотов`;
-                    if (filtered.length === 0) { feedContainer.classList.add('hidden'); if (emptyState) emptyState.classList.remove('hidden'); return; }
-                    feedContainer.classList.remove('hidden'); if (emptyState) emptyState.classList.add('hidden');
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                const isMyL = myListingIds.includes(item.id);
+                card.className = `bg-white rounded-3xl p-4 border ${isMyL ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} ${item.isTop ? 'top-glow' : ''} hover:shadow-md transition-all relative flex flex-col justify-between`;
+                
+                const evaluation = calculatePriceAssessment(item.category, item.price);
+                const topBadgeHTML = item.isTop ? `<span class="bg-amber-500 text-slate-950 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-0.5"><i class="fa-solid fa-crown text-[7px]"></i> ТОП</span>` : '';
+                const auctionBadgeHTML = item.isAuction ? `<span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">🔥 Аукцион</span>` : `<span class="border text-[8px] font-extrabold px-2 py-0.5 rounded-full ${evaluation.badgeClass}">${evaluation.label}</span>`;
+                const badgesContainerHTML = `<div class="absolute top-2 left-2 flex flex-col gap-1 z-10">${topBadgeHTML}${auctionBadgeHTML}</div>`;
 
-                    filtered.forEach(item => {
-                        const card = document.createElement('div');
-                        const isMyL = myListingIds.includes(item.id);
-                        card.className = `bg-white rounded-3xl p-4 border ${isMyL ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} ${item.isTop ? 'top-glow' : ''} hover:shadow-md transition-all relative flex flex-col justify-between`;
-                        
-                        const evaluation = calculatePriceAssessment(item.category, item.price);
-                        const topBadgeHTML = item.isTop ? `<span class="bg-amber-500 text-slate-950 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-0.5"><i class="fa-solid fa-crown text-[7px]"></i> ТОП</span>` : '';
-                        const auctionBadgeHTML = item.isAuction ? `<span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">🔥 Аукцион</span>` : `<span class="border text-[8px] font-extrabold px-2 py-0.5 rounded-full ${evaluation.badgeClass}">${evaluation.label}</span>`;
-                        const badgesContainerHTML = `<div class="absolute top-2 left-2 flex flex-col gap-1 z-10">${topBadgeHTML}${auctionBadgeHTML}</div>`;
+                let mediaHTML = item.image ? `<img src="${item.image}" class="w-full h-full object-cover rounded-2xl">` : `<span class="text-3xl">${item.emoji || '🐂'}</span>`;
+                const isVerified = verifiedAuthors.includes(item.author) || item.author === 'Арсен (Вы)';
 
-                        let mediaHTML = item.image ? `<img src="${item.image}" class="w-full h-full object-cover rounded-2xl">` : `<span class="text-3xl">${item.emoji || '🐂'}</span>`;
-                        const isVerified = verifiedAuthors.includes(item.author) || item.author === 'Арсен (Вы)';
-
-                        card.innerHTML = `
-                            <div>
-                                <div class="w-full h-32 bg-slate-50 border rounded-2xl flex items-center justify-center overflow-hidden mb-3 relative shadow-inner">
-                                    ${mediaHTML}
-                                    ${badgesContainerHTML}
-                                </div>
-                                <h3 class="font-extrabold text-slate-800 text-xs leading-snug cursor-pointer hover:text-emerald-600 transition-all mb-1" onclick="showListingDetails('${item.fbKey}')">${item.title}</h3>
-                                <div class="text-emerald-600 font-black text-sm mb-2">${formatPrice(item.price)} <span class="text-[10px] font-bold">${item.unit || 'сом'}</span></div>
-                                <p class="text-[11px] text-slate-500 leading-normal mb-3 border-t pt-2 line-clamp-2">${item.desc}</p>
-                            </div>
-                            <div>
-                                <div class="grid grid-cols-3 gap-1.5 mb-2.5">
-                                    <button onclick="triggerCall('${item.phone}', '${item.author}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-solid fa-phone"></i> Колл</button>
-                                    <button onclick="triggerTelegramChat('${item.author}', '${item.title}', '${formatPrice(item.price)}', '${item.phone}', '${item.fbKey}')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-brands fa-telegram"></i> Чат</button>
-                                    <button onclick="showListingMap('${item.settlement}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-[10px] py-2 rounded-xl transition-all">Карта</button>
-                                </div>
-                                <div class="flex justify-between items-center text-[9px] text-slate-400 border-t pt-2">
-                                    <span class="truncate max-w-[130px] font-medium"><i class="fa-solid fa-location-dot text-emerald-600 mr-0.5"></i> ${item.settlement}</span>
-                                    <span class="flex items-center text-[9.5px] text-slate-500 font-bold max-w-[120px] truncate">👤 ${item.author} ${isVerified ? '✅' : ''}</span>
-                                </div>
-                            </div>
-                        `;
-                        feedContainer.appendChild(card);
-                    });
-                });
+                card.innerHTML = `
+                    <div>
+                        <div class="w-full h-32 bg-slate-50 border rounded-2xl flex items-center justify-center overflow-hidden mb-3 relative shadow-inner">
+                            ${mediaHTML}
+                            ${badgesContainerHTML}
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 text-xs leading-snug cursor-pointer hover:text-emerald-600 transition-all mb-1" onclick="showListingDetails('${item.fbKey || 'mock_' + item.id}')">${item.title}</h3>
+                        <div class="text-emerald-600 font-black text-sm mb-2">${formatPrice(item.price)} <span class="text-[10px] font-bold">${item.unit || 'сом'}</span></div>
+                        <p class="text-[11px] text-slate-500 leading-normal mb-3 border-t pt-2 line-clamp-2">${item.desc}</p>
+                    </div>
+                    <div>
+                        <div class="grid grid-cols-3 gap-1.5 mb-2.5">
+                            <button onclick="triggerCall('${item.phone}', '${item.author}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-solid fa-phone"></i> Колл</button>
+                            <button onclick="triggerTelegramChat('${item.author}', '${item.title}', '${formatPrice(item.price)}', '${item.phone}', '${item.fbKey || 'mock_' + item.id}')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-brands fa-telegram"></i> Чат</button>
+                            <button onclick="showListingMap('${item.settlement}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-[10px] py-2 rounded-xl transition-all">Карта</button>
+                        </div>
+                        <div class="flex justify-between items-center text-[9px] text-slate-400 border-t pt-2">
+                            <span class="truncate max-w-[130px] font-medium"><i class="fa-solid fa-location-dot text-emerald-600 mr-0.5"></i> ${item.settlement}</span>
+                            <span class="flex items-center text-[9.5px] text-slate-500 font-bold max-w-[120px] truncate">👤 ${item.author} ${isVerified ? '✅' : ''}</span>
+                        </div>
+                    </div>
+                `;
+                feedContainer.appendChild(card);
             });
         }
 
         function showListingDetails(fbKey) {
-            const item = listings.find(l => l.fbKey === fbKey); if (!item) return;
+            const item = listings.find(l => (l.fbKey === fbKey || 'mock_' + l.id === fbKey)); if (!item) return;
             const modalContent = document.getElementById('details-modal-content');
             const modalFooter = document.getElementById('details-modal-footer');
             const assessment = calculatePriceAssessment(item.category, item.price);
@@ -837,13 +925,13 @@
                         <div class="bg-white p-2 rounded-xl border"><span>Старт:</span> <b class="block">${formatPrice(item.startPrice || item.price)} сом</b></div>
                         <div class="bg-white p-2 rounded-xl border text-red-600"><span>Ставка:</span> <b class="block">${formatPrice(item.price)} сом</b></div>
                     </div>
-                    <button onclick="raiseBid('${item.fbKey}')" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-2 rounded-xl text-xs shadow-md">💵 Повысить ставку (+2 000 сом)</button>
+                    <button onclick="raiseBid('${item.fbKey || 'mock_' + item.id}')" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-2 rounded-xl text-xs shadow-md">💵 Повысить ставку (+2 000 сом)</button>
                     <div class="bg-white p-2.5 rounded-xl border text-[9px] max-h-[80px] overflow-y-auto">${bidsLog}</div>
                 </div>`;
             } else {
                 auctionHTML = `<div class="bg-emerald-50/40 border p-3 rounded-2xl flex justify-between items-center">
                     <div><b class="block text-emerald-900 text-xs">Предложить свою цену</b></div>
-                    <button onclick="openOfferModal('${item.fbKey}')" class="bg-emerald-600 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl">Предложить</button>
+                    <button onclick="openOfferModal('${item.fbKey || 'mock_' + item.id}')" class="bg-emerald-600 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl">Предложить</button>
                 </div>`;
             }
 
@@ -855,9 +943,10 @@
                 <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 space-y-2">
                     <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase"><span>📊 Аналитика цен</span><span class="border px-2 py-0.5 rounded-full ${assessment.badgeClass}">${assessment.label}</span></div>
                     <div class="relative pt-2 pb-1"><div class="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-400 rounded-full relative"><div class="absolute -top-1 w-3.5 h-3.5 rounded-full border border-white shadow-sm ${assessment.dotColor}" style="left: ${assessment.scalePercent}%;"></div></div></div>
-                    <p class="text-[9.5px] text-slate-500 text-center">${assessment.percentageText} относительно среднего рынка (~${medianPriceFormatted} сом)</p>
+                    <p id="details-assessment-text" class="text-[9.5px] text-slate-500 text-center">${assessment.percentageText} относительно среднего рынка (~${medianPriceFormatted} сом)</p>
                 </div>
                 ${auctionHTML}
+                <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-2xl border"><p class="text-slate-600"><b class="text-slate-400 font-bold uppercase text-[9px] block">📍 Локация:</b>${item.settlement} (${item.district})</p><p class="text-slate-600 mt-2"><b class="text-slate-400 font-bold uppercase text-[9px] block">📝 Описание продавца:</b>${item.desc}</p></div>
                 <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 flex items-start gap-2.5">
                     <span class="text-amber-600"><i class="fa-solid fa-shield-halved"></i></span>
                     <div><h5 class="text-[10px] font-bold text-amber-900 mb-1">Рекомендация по безопасности</h5><p class="text-[9px] text-amber-800/80 leading-normal font-medium">Никогда не отправляйте предоплату на электронные кошельки! Расчет строго при личной встрече.</p></div>
@@ -900,6 +989,7 @@
                 bids: document.getElementById('form-is-auction').checked ? [{ name: 'Система', amount: price, time: 'Только что' }] : []
             };
 
+            const refPath = isCloudActive ? 'listings' : STORAGE_KEY;
             database.ref('listings').push(newAd).then(() => {
                 // Запоминаем свои личные ID лотов
                 const myListingIds = JSON.parse(localStorage.getItem('my_listing_ids') || '[]');
@@ -907,24 +997,25 @@
                 localStorage.setItem('my_listing_ids', JSON.stringify(myListingIds));
                 
                 closeModal();
-                showToastNotification('Лот отправлен на облачный сервер Firebase!');
+                showToastNotification('Лот отправлен в базу данных!');
             });
         }
 
         function raiseBid(fbKey) {
-            const item = listings.find(l => l.fbKey === fbKey); if (!item) return;
+            const item = listings.find(l => (l.fbKey === fbKey || 'mock_' + l.id === fbKey)); if (!item) return;
             const newPrice = item.price + 2000;
             const newBid = { name: isLoggedIn ? currentUser.name : 'Фермер', amount: newPrice, time: 'Только что' };
             if (!item.bids) item.bids = [];
             item.bids.unshift(newBid);
 
-            database.ref(`listings/${fbKey}`).update({ price: newPrice, bids: item.bids }).then(() => {
+            const path = item.fbKey ? `listings/${item.fbKey}` : `listings/mock_${item.id}`;
+            database.ref(path).update({ price: newPrice, bids: item.bids }).then(() => {
                 showListingDetails(fbKey);
             });
         }
 
         function openOfferModal(fbKey) {
-            const item = listings.find(l => l.fbKey === fbKey); if (!item) return;
+            const item = listings.find(l => (l.fbKey === fbKey || 'mock_' + l.id === fbKey)); if (!item) return;
             const modal = document.getElementById('offer-price-modal'); if (modal) modal.classList.remove('hidden');
             document.getElementById('offer-custom-amount').value = Math.round(item.price * 0.95);
             document.getElementById('submit-offer-btn').onclick = function() { submitOfferAmount(item); };
@@ -935,7 +1026,7 @@
         function submitOfferAmount(item) {
             const amount = parseFloat(document.getElementById('offer-custom-amount').value); if (!amount || amount <= 0) return;
             closeOfferModal(); closeDetailsModal();
-            triggerTelegramChat(item.author, item.title, formatPrice(amount), item.phone, item.fbKey);
+            triggerTelegramChat(item.author, item.title, formatPrice(amount), item.phone, item.fbKey || 'mock_' + item.id);
             const box = document.getElementById('chat-messages-box');
             if (box) { box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%] self-end flex-row-reverse ml-auto"><div class="bg-emerald-600 text-white rounded-2xl p-2.5 text-[11px]">Предлагаю ${formatPrice(amount)} сом!</div></div>`; box.scrollTop = box.scrollHeight; }
         }
@@ -1015,49 +1106,6 @@
                 card.innerHTML = `<div class="flex justify-between text-xl"><span>${c.emoji}</span><span class="text-[9px] bg-white px-2 py-0.5 rounded-full font-black text-slate-500">${count} лотов</span></div><div class="font-extrabold text-xs text-slate-800 mt-2">${c.label}</div>`;
                 grid.appendChild(card);
             });
-        }
-
-        function openProfileEditModal() {
-            const modal = document.getElementById('profile-edit-modal'); if (!modal) return;
-            modal.classList.remove('hidden');
-            document.getElementById('edit-profile-name').value = currentUser.name;
-            document.getElementById('edit-profile-phone').value = currentUser.phone ? currentUser.phone.replace('+996 ', '').trim() : '';
-            document.getElementById('edit-profile-district').value = currentUser.district || 'Ошская обл.';
-            populateSettlements('edit-profile-district', 'edit-profile-settlement', currentUser.settlement || '', false);
-            document.getElementById('edit-profile-bio').value = currentUser.bio || '';
-            selectedAvatarBase64 = currentUser.avatar; updateAvatarFormUI();
-        }
-
-        function closeProfileEditModal() { document.getElementById('profile-edit-modal').classList.add('hidden'); }
-        function triggerAvatarUpload() { document.getElementById('form-avatar-input').click(); }
-
-        function handleAvatarSelection(event) {
-            const file = event.target.files[0]; if (!file) return;
-            const reader = new FileReader(); reader.onload = function(e) {
-                const img = new Image(); img.onload = function() {
-                    const canvas = document.createElement('canvas'); canvas.width = 120; canvas.height = 120;
-                    const ctx = canvas.getContext('2d'); if (ctx) ctx.drawImage(img, 0, 0, 120, 120);
-                    selectedAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8); updateAvatarFormUI();
-                }; img.src = e.target.result;
-            }; reader.readAsDataURL(file);
-        }
-
-        function removeSelectedAvatar(event) { if (event) event.stopPropagation(); selectedAvatarBase64 = null; updateAvatarFormUI(); }
-
-        function updateAvatarFormUI() {
-            const triggerArea = document.getElementById('avatar-trigger-area'); const previewArea = document.getElementById('avatar-preview-area'); const previewImg = document.getElementById('avatar-preview-img');
-            if (selectedAvatarBase64) { triggerArea.classList.add('hidden'); previewArea.classList.remove('hidden'); previewImg.src = selectedAvatarBase64; }
-            else { triggerArea.classList.remove('hidden'); previewArea.classList.add('hidden'); previewImg.src = ''; }
-        }
-
-        function saveUserProfile() {
-            const name = document.getElementById('edit-profile-name').value.trim(); const phone = document.getElementById('edit-profile-phone').value.trim();
-            if (!name || !phone) { showAlert('Заполните обязательные поля.'); return; }
-            currentUser.name = name; currentUser.phone = '+996 ' + phone;
-            currentUser.district = document.getElementById('edit-profile-district').value; currentUser.settlement = document.getElementById('edit-profile-settlement').value;
-            currentUser.bio = document.getElementById('edit-profile-bio').value.trim(); currentUser.avatar = selectedAvatarBase64;
-            localStorage.setItem('agromarket_user_profile_data_v3_9', JSON.stringify(currentUser));
-            closeProfileEditModal(); updateProfileView(); renderListings(); showToastNotification('Профиль успешно изменен!');
         }
 
         function openSellModal() {
