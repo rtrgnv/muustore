@@ -14,7 +14,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
         }
         .no-scrollbar::-webkit-scrollbar {
@@ -54,63 +54,68 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        /* Премиальная рамка Samsung Galaxy S25 Ultra для десктопа */
-        .samsung-s25-ultra-frame {
-            border: 10px solid #0f172a;
-            border-radius: 28px;
-            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), inset 0 0 0 2px rgba(255, 255, 255, 0.15);
-            width: 406px;
-            height: 880px;
-            max-height: 96vh;
-        }
-
-        /* На мобильных устройствах рамка телефона исчезает, растягивая контент на весь экран */
-        @media (max-width: 450px) {
-            .samsung-s25-ultra-frame {
-                border: none !important;
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                width: 100% !important;
-                height: 100vh !important;
-                max-height: 100vh !important;
-            }
-            body {
-                background-color: #f8fafc;
-                padding: 0 !important;
-            }
-            .mobile-padding-fix {
-                padding-top: 2.5rem !important;
-            }
-        }
     </style>
 </head>
-<body class="flex justify-center items-center min-h-screen p-4 overflow-hidden select-none">
+<body class="bg-slate-50 min-h-screen text-slate-800">
 
-    <!-- Корпус устройства Samsung Galaxy S25 Ultra -->
-    <div class="samsung-s25-ultra-frame bg-slate-50 overflow-hidden flex flex-col relative border border-slate-200">
-        
-        <!-- Вырез фронтальной камеры Infinity-O (Скрыт на ПК, виден на мобильных) -->
-        <div class="absolute top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-black rounded-full z-50 shadow-inner flex items-center justify-center">
-            <div class="w-1.5 h-1.5 bg-[#0a0a0a] rounded-full opacity-40"></div>
-        </div>
+    <!-- 🌐 НАДПРОСТРАНСТВЕННЫЙ АДАПТИВНЫЙ КОНТЕЙНЕР -->
+    <div class="max-w-7xl mx-auto min-h-screen flex flex-col relative">
 
-        <!-- Бело-зеленая шапка приложения (с отступом под камеру) -->
-        <header id="app-header" class="mobile-padding-fix bg-white text-slate-800 px-4 pt-10 pb-4 rounded-b-[2rem] shadow-sm border-b border-slate-100 sticky top-0 z-30">
+        <!-- 🖥️ ДЕСКТОПНАЯ ВЕРХНЯЯ ШАПКА (Скрыта на мобильных, видна от lg: экрана) -->
+        <header class="hidden lg:flex justify-between items-center bg-white px-6 py-4 border-b border-slate-100 shadow-xs sticky top-0 z-45">
+            <div class="flex items-center gap-3 cursor-pointer select-none" onclick="switchTab('feed')">
+                <span class="bg-emerald-600 text-white px-3 py-1 rounded-xl text-lg font-black shadow-sm">MUU</span>
+            </div>
+            
+            <!-- Поиск в шапке на ПК -->
+            <div class="w-1/3 relative" id="desktop-search-wrapper">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </span>
+                <input type="text" id="desktop-search-bar" onkeyup="syncSearchInputs(this)" placeholder="Поиск бычков, баранов, кормов по всей стране..." 
+                       class="w-full bg-slate-100 focus:bg-white text-slate-800 placeholder-slate-400 rounded-xl py-2 pl-10 pr-4 text-xs font-semibold outline-none transition-all border border-slate-200 focus:border-emerald-500 shadow-inner">
+            </div>
+
+            <!-- Верхнее меню ПК -->
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 select-none">
+                <button onclick="switchTab('feed')" id="dk-nav-feed" class="px-3 py-2 text-emerald-600 rounded-xl bg-emerald-50 flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-store"></i> Рынок лотов
+                </button>
+                <button onclick="switchTab('auctions')" id="dk-nav-auctions" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-gavel"></i> Онлайн-Аукционы
+                </button>
+                <button onclick="switchTab('categories')" id="dk-nav-categories" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-shapes"></i> Каталог категорий
+                </button>
+                <button onclick="switchTab('my-listings')" id="dk-nav-my-listings" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all relative">
+                    <i class="fa-solid fa-clipboard-list"></i> Мои объявления
+                    <span id="dk-badge-my-listings" class="absolute top-0 right-0 bg-red-500 text-white text-[7px] font-black px-1 rounded-full hidden">0</span>
+                </button>
+                <button onclick="switchTab('profile')" id="dk-nav-profile" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-user-circle"></i> Личный кабинет
+                </button>
+                <button onclick="openSellModal()" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all transform hover:scale-102 active:scale-98">
+                    <i class="fa-solid fa-plus"></i> Подать объявление
+                </button>
+            </div>
+        </header>
+
+        <!-- 📱 МОБИЛЬНАЯ ШАПКА (Скрывается на больших экранах, остается на смартфонах) -->
+        <header id="app-header" class="block lg:hidden bg-white text-slate-800 px-4 pt-6 pb-4 rounded-b-[2rem] shadow-sm border-b border-slate-100 sticky top-0 z-30">
             <!-- Центрированный мобильный бренд-блок -->
             <div id="brand-header" class="overflow-hidden h-11 opacity-100 mb-3" style="max-height: 44px;">
                 <div class="flex justify-center items-center text-center">
                     <div class="flex flex-col items-center">
                         <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2 text-slate-800 justify-center">
-                            <span class="bg-emerald-600 text-white px-3 py-0.5 rounded-lg text-sm shadow-sm font-black">MUU</span>
+                            <span class="bg-emerald-600 text-white px-2.5 py-0.5 rounded-lg text-sm shadow-sm font-black">MUU</span>
                         </h1>
                         <p class="text-[10px] text-emerald-600 mt-0.5 font-bold text-center">Бесплатная доска объявлений скота</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Двухуровневая геолокация -->
-            <div id="geo-filters" class="space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50 overflow-hidden" style="max-height: 80px;">
+            <!-- Двухуровневая мобильная геолокация -->
+            <div id="geo-filters" class="space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50 overflow-hidden" style="max-height: 80px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);">
                 <div class="grid grid-cols-2 gap-2">
                     <select id="district-filter" onchange="onRegionFilterChange('district-filter', 'settlement-filter')" class="w-full bg-white border border-slate-200 text-slate-800 text-[11px] rounded-xl p-2 font-bold outline-none">
                         <option value="all">🗺️ Все области</option>
@@ -133,11 +138,12 @@
                 <i class="fa-solid fa-sliders"></i> Дополнительные фильтры скота
             </button>
 
+            <!-- Мобильная панель дополнительных параметров скота -->
             <div id="mobile-advanced-filters" class="hidden mt-2 bg-emerald-50/20 p-3 rounded-2xl border border-emerald-100/35 space-y-2">
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Порода</label>
-                        <select id="breed-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none bg-white">
+                        <select id="breed-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none">
                             <option value="all">Все породы</option>
                             <option value="Черный Ангус">Черный Ангус</option>
                             <option value="Швицкая">Швицкая</option>
@@ -149,7 +155,7 @@
                     </div>
                     <div>
                         <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Пол</label>
-                        <select id="gender-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none bg-white">
+                        <select id="gender-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none">
                             <option value="all">Любой пол</option>
                             <option value="самец">Самец</option>
                             <option value="самка">Самка</option>
@@ -157,7 +163,7 @@
                     </div>
                     <div>
                         <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Возраст</label>
-                        <select id="age-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none bg-white">
+                        <select id="age-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none">
                             <option value="all">Любой возраст</option>
                             <option value="young">До 1 года</option>
                             <option value="mid">1 - 2 года</option>
@@ -167,14 +173,14 @@
                     <div>
                         <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Вес (кг)</label>
                         <div class="grid grid-cols-2 gap-1">
-                            <input type="number" id="weight-min" onkeyup="filterListings()" placeholder="От" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-1.5 font-bold outline-none">
-                            <input type="number" id="weight-max" onkeyup="filterListings()" placeholder="До" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-1.5 font-bold outline-none">
+                            <input type="number" id="weight-min" onkeyup="filterListings()" placeholder="От" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none">
+                            <input type="number" id="weight-max" onkeyup="filterListings()" placeholder="До" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Строка поиска -->
+            <!-- Строка поиска на мобильном -->
             <div id="search-container" class="relative mt-2.5">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
                     <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -187,170 +193,256 @@
             </div>
         </header>
 
-        <!-- Главный контейнер содержимого со скроллом -->
-        <main class="flex-1 overflow-y-auto px-4 py-4 pb-28" id="main-scroll-container">
-
-            <!-- Категории товаров -->
-            <section id="categories-section" class="mb-4">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Категории фермерства</h2>
-                    <span class="text-[10px] text-emerald-600 font-bold" id="category-clear-btn" onclick="selectCategory('all')" style="display:none; cursor:pointer;">Сбросить</span>
-                </div>
-                <div class="flex gap-2 overflow-x-auto no-scrollbar py-1">
-                    <button onclick="selectCategory('cows')" id="cat-cows" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
-                        <span class="text-xl">🐂</span>
-                        <span class="text-[10px] font-bold text-slate-600">Коровы</span>
-                    </button>
-                    <button onclick="selectCategory('sheep')" id="cat-sheep" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
-                        <span class="text-xl">🐑</span>
-                        <span class="text-[10px] font-bold text-slate-600">Бараны</span>
-                    </button>
-                    <button onclick="selectCategory('horses')" id="cat-horses" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
-                        <span class="text-xl">🐎</span>
-                        <span class="text-[10px] font-bold text-slate-600">Лошади</span>
-                    </button>
-                    <button onclick="selectCategory('feed')" id="cat-feed" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
-                        <span class="text-xl">🌾</span>
-                        <span class="text-[10px] font-bold text-slate-600">Корма</span>
-                    </button>
-                    <button onclick="selectCategory('tech')" id="cat-tech" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
-                        <span class="text-xl">🚜</span>
-                        <span class="text-[10px] font-bold text-slate-600">Техника</span>
-                    </button>
-                </div>
-            </section>
-
-            <!-- Активные фильтры (Плашки) -->
-            <div id="filter-chips-container" class="mb-3 flex flex-wrap gap-1.5 items-center hidden">
-                <span class="text-[9px] text-slate-400 font-bold uppercase">Фильтры:</span>
-                <div id="chips-list" class="flex flex-wrap gap-1"></div>
-            </div>
-
-            <!-- Заголовок Ленты рынка -->
-            <div class="flex justify-between items-center mb-2.5">
-                <h2 id="feed-title" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Объявления рынка</h2>
-                <span class="text-[10px] text-slate-500 font-bold" id="listings-count">Показано: 0</span>
-            </div>
-
-            <!-- Лента объявлений -->
-            <div id="listings-feed" class="space-y-3">
-                <!-- Заполняется динамически через JS -->
-            </div>
-
-            <!-- Пустое состояние (Ничего не найдено) -->
-            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-10 px-4 text-center">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-2xl">🔍</div>
-                <h3 class="text-slate-700 font-bold text-sm mb-1">Ничего не найдено</h3>
-                <p class="text-slate-400 text-[10px] max-w-[200px]">Попробуйте сбросить поисковый запрос или настроить локацию заново.</p>
-                <button onclick="resetFilters()" class="mt-3 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold transition-all">Сбросить фильтры</button>
-            </div>
-
-            <!-- Каталог Категорий (Плитки) -->
-            <div id="categories-container" class="hidden space-y-4 py-1 animate-slide-up">
-                <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-4 rounded-3xl shadow-md relative overflow-hidden">
-                    <div class="absolute right-0 bottom-0 translate-x-3 translate-y-3 text-white/10 text-7xl font-bold">🌿</div>
-                    <h3 class="font-extrabold text-xs mb-1">Каталог muu.kg</h3>
-                    <p class="text-[9.5px] text-emerald-100 leading-normal font-medium">Выберите интересующее вас направление для быстрого перехода к торгам.</p>
-                </div>
-                <div id="categories-tab-grid" class="grid grid-cols-2 gap-3">
-                    <!-- Заполняется программно -->
-                </div>
-            </div>
-
-            <!-- Личный Кабинет фермера -->
-            <div id="profile-container" class="hidden space-y-4 py-1">
-                <!-- Окно авторизации -->
-                <div id="profile-auth-wall" class="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs space-y-4 text-center animate-slide-up">
-                    <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-xs">👨‍🌾</div>
-                    <div>
-                        <h3 class="text-slate-800 font-extrabold text-xs">Добро пожаловать</h3>
-                        <p class="text-[10px] text-slate-400 leading-relaxed mt-1">Войдите в профиль, чтобы бесплатно выкладывать объявления и запускать аукционы.</p>
+        <!-- 🔲 ГЛАВНАЯ РАЗБИВКА НА КОЛОНКИ (ДЕСКТОП СЕТКА) -->
+        <div class="flex-grow flex flex-col lg:flex-row w-full lg:py-6 lg:px-4 gap-6 overflow-hidden">
+            
+            <!-- 🖥️ ЛЕВАЯ БОКОВАЯ СИДБАР-ПАНЕЛЬ ФИЛЬТРОВ НА ПК (Скрывается на моб) -->
+            <aside class="hidden lg:block w-64 flex-shrink-0 space-y-4 select-none">
+                <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-50 pb-2">
+                        <h3 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider">🗺️ Фильтр регионов</h3>
+                        <button onclick="resetFilters()" class="text-[10px] text-emerald-600 font-bold hover:underline">Сбросить</button>
                     </div>
-
-                    <div class="space-y-2 pt-2">
-                        <button onclick="triggerAuth('telegram')" class="w-full bg-[#24A1DE] hover:bg-[#1f8fc5] text-white font-bold text-[11px] py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
-                            <i class="fa-brands fa-telegram text-sm"></i> Войти через Telegram
-                        </button>
-                        <button onclick="triggerAuth('google')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-[11px] py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.34 0-6.05-2.71-6.05-6.05s2.71-6.05 6.05-6.05c1.493 0 2.86.542 3.922 1.438l3.11-3.11C18.912 2.68 15.776 1.5 12.24 1.5c-5.799 0-10.5 4.701-10.5 10.5s4.701 10.5 10.5 10.5c5.385 0 9.878-3.9 10.435-9h-10.435z"/></svg>
-                            Войти через Google
-                        </button>
-                    </div>
-
-                    <div id="auth-loading-overlay" class="hidden flex flex-col items-center justify-center space-y-2 py-4">
-                        <div class="auth-spinner"></div>
-                        <span class="text-[10px] text-emerald-600 font-extrabold animate-pulse">Безопасное подключение...</span>
-                    </div>
-                </div>
-
-                <!-- Главная панель фермера -->
-                <div id="profile-dashboard" class="hidden space-y-4">
-                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-4 rounded-3xl shadow-md relative overflow-hidden border border-slate-700">
-                        <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 text-slate-700 opacity-20 text-8xl">👨‍🌾</div>
-                        <div class="relative z-10 flex items-center gap-3">
-                            <div id="dashboard-avatar-container" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-extrabold shadow-sm overflow-hidden bg-gradient-to-tr from-emerald-400 to-green-500">А</div>
-                            <div>
-                                <h3 id="dashboard-name" class="font-extrabold text-sm flex items-center gap-1.5">Арсен (Вы)</h3>
-                                <p id="dashboard-sub" class="text-[10px] text-slate-300">Фермер из Кыргызстана • ID: 74829</p>
-                            </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Выберите Область</label>
+                            <select id="pc-district-filter" onchange="onRegionFilterChange('pc-district-filter', 'pc-settlement-filter')" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2.5 outline-none cursor-pointer hover:bg-slate-100 transition-all">
+                                <option value="all">Все области КР</option>
+                                <option value="Баткенская обл.">Баткенская область</option>
+                                <option value="Джалал-Абадская обл.">Джалал-Абадская область</option>
+                                <option value="Иссык-Кульская обл.">Иссык-Кульская область</option>
+                                <option value="Нарынская обл.">Нарынская область</option>
+                                <option value="Ошская обл.">Ошская область</option>
+                                <option value="Таласская обл.">Таласская область</option>
+                                <option value="Чуйская обл.">Чуйская область</option>
+                            </select>
                         </div>
-                        <div class="grid grid-cols-3 gap-2 mt-4 border-t border-slate-700/80 pt-3 text-center">
-                            <div>
-                                <span class="block text-base font-bold text-emerald-400" id="user-listings-count-num">1</span>
-                                <span class="text-[9px] text-slate-400">Моих лотов</span>
-                            </div>
-                            <div>
-                                <span class="block text-base font-bold text-emerald-400">14</span>
-                                <span class="text-[9px] text-slate-400">Просмотров</span>
-                            </div>
-                            <div>
-                                <span class="block text-base font-bold text-blue-400">⭐️ 4.9</span>
-                                <span class="text-[9px] text-slate-400">Рейтинг</span>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Город / Скотный рынок</label>
+                            <select id="pc-settlement-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2.5 outline-none cursor-pointer hover:bg-slate-100 transition-all">
+                                <option value="all">Все места</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок параметров скота на ПК -->
+                <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-4">
+                    <h3 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider">🐂 Параметры скота</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Порода</label>
+                            <select id="pc-breed-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none cursor-pointer">
+                                <option value="all">Все породы</option>
+                                <option value="Черный Ангус">Черный Ангус</option>
+                                <option value="Швицкая">Швицкая</option>
+                                <option value="Алатауская">Алатауская</option>
+                                <option value="Гиссарская">Гиссарская</option>
+                                <option value="Новокиргизская">Новокиргизская</option>
+                                <option value="Местная">Местная</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Пол</label>
+                            <select id="pc-gender-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none cursor-pointer">
+                                <option value="all">Любой пол</option>
+                                <option value="самец">Самец</option>
+                                <option value="самка">Самка</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Возраст</label>
+                            <select id="pc-age-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none cursor-pointer">
+                                <option value="all">Любой возраст</option>
+                                <option value="young">До 1 года</option>
+                                <option value="mid">1 - 2 года</option>
+                                <option value="adult">Старше 2 лет</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Вес (кг)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="pc-weight-min" onkeyup="filterListings()" placeholder="От" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
+                                <input type="number" id="pc-weight-max" onkeyup="filterListings()" placeholder="До" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
                             </div>
                         </div>
                     </div>
+                </div>
+            </aside>
 
-                    <!-- Настройки -->
-                    <div class="bg-white rounded-3xl p-3 shadow-xs border border-slate-100 space-y-0.5">
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1.5">Настройки аккаунта</h4>
-                        <button onclick="openProfileEditModal()" class="w-full flex justify-between items-center p-2.5 hover:bg-slate-50 rounded-2xl transition-all group text-left">
-                            <div class="flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-user-gear"></i></span>
-                                <span class="text-xs font-bold text-slate-700">Редактировать профиль</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-[10px]"></i>
+            <!-- 📄 ОСНОВНОЙ КОНТЕНТ (ЛЕНТА И СТРАНИЦЫ) -->
+            <main class="flex-grow overflow-y-auto px-2 lg:px-0 pb-24 lg:pb-6" id="main-scroll-container">
+
+                <!-- Категории товаров (Горизонтальный слайдер) -->
+                <section id="categories-section" class="mb-5 select-none">
+                    <div class="flex justify-between items-center mb-2.5">
+                        <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Категории фермерства</h2>
+                        <span class="text-[10px] text-emerald-600 font-bold" id="category-clear-btn" onclick="selectCategory('all')" style="display:none; cursor:pointer;">Сбросить каталог</span>
+                    </div>
+                    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+                        <button onclick="selectCategory('cows')" id="cat-cows" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[78px] h-[80px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-400 shadow-xs transition-all">
+                            <span class="text-2xl">🐂</span>
+                            <span class="text-[11px] font-bold text-slate-600">Коровы</span>
                         </button>
-                        <button onclick="triggerLogout()" class="w-full flex justify-between items-center p-2.5 hover:bg-rose-50/50 rounded-2xl transition-all group text-left">
-                            <div class="flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
-                                <span class="text-xs font-bold text-slate-700">Выйти из аккаунта</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-[10px]"></i>
+                        <button onclick="selectCategory('sheep')" id="cat-sheep" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[78px] h-[80px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-400 shadow-xs transition-all">
+                            <span class="text-2xl">🐑</span>
+                            <span class="text-[11px] font-bold text-slate-600">Бараны</span>
                         </button>
-                        <button onclick="triggerResetApp()" class="w-full flex justify-between items-center p-2.5 hover:bg-red-50/40 rounded-2xl transition-all group text-left">
-                            <div class="flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-xs"><i class="fa-solid fa-rotate-right"></i></span>
-                                <span class="text-xs font-bold text-slate-700">Сбросить все демо-данные</span>
+                        <button onclick="selectCategory('horses')" id="cat-horses" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[78px] h-[80px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-400 shadow-xs transition-all">
+                            <span class="text-2xl">🐎</span>
+                            <span class="text-[11px] font-bold text-slate-600">Лошади</span>
+                        </button>
+                        <button onclick="selectCategory('feed')" id="cat-feed" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[78px] h-[80px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-400 shadow-xs transition-all">
+                            <span class="text-2xl">🌾</span>
+                            <span class="text-[11px] font-bold text-slate-600">Корма</span>
+                        </button>
+                        <button onclick="selectCategory('tech')" id="cat-tech" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[78px] h-[80px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-400 shadow-xs transition-all">
+                            <span class="text-2xl">🚜</span>
+                            <span class="text-[11px] font-bold text-slate-600">Техника</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Активные плашки фильтров -->
+                <div id="filter-chips-container" class="mb-4 flex flex-wrap gap-1.5 items-center hidden select-none">
+                    <span class="text-[9px] text-slate-400 font-bold uppercase">Фильтры:</span>
+                    <div id="chips-list" class="flex flex-wrap gap-1"></div>
+                </div>
+
+                <!-- Заголовок Ленты -->
+                <div class="flex justify-between items-center mb-3 select-none">
+                    <h2 id="feed-title" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Объявления рынка</h2>
+                    <span class="text-[10px] text-slate-500 font-bold" id="listings-count">Показано: 0 лотов</span>
+                </div>
+
+                <!-- Сетка карточек товаров (Адаптивная от 1 до 3 колонок) -->
+                <div id="listings-feed" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Заполняется динамически из JS -->
+                </div>
+
+                <!-- Пустое состояние -->
+                <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-2xl">🔍</div>
+                    <h3 class="text-slate-700 font-bold text-sm mb-1">Ничего не найдено</h3>
+                    <p class="text-slate-400 text-[10px] max-w-[200px]">Попробуйте изменить поисковый запрос или сбросить фильтры.</p>
+                    <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all">Сбросить все настройки</button>
+                </div>
+
+                <!-- Раздел каталога категорий -->
+                <div id="categories-container" class="hidden space-y-4 py-1 animate-slide-up select-none">
+                    <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-5 rounded-3xl shadow-md relative overflow-hidden">
+                        <div class="absolute right-0 bottom-0 translate-x-3 translate-y-3 text-white/10 text-8xl">🌿</div>
+                        <h3 class="font-extrabold text-sm mb-1">Каталог MUU</h3>
+                        <p class="text-xs text-emerald-100 max-w-xl leading-relaxed">Выберите интересующее вас направление для быстрого перехода к торгам, актуальным ценовым диапазонам и фермерским базам данных КР.</p>
+                    </div>
+                    <div id="categories-tab-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    </div>
+                </div>
+
+                <!-- Личный кабинет -->
+                <div id="profile-container" class="hidden space-y-4 py-1 max-w-2xl mx-auto">
+                    <!-- Заглушка неавторизованного входа -->
+                    <div id="profile-auth-wall" class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xs space-y-4 text-center animate-slide-up">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-xs">👨‍🌾</div>
+                        <div>
+                            <h3 class="text-slate-800 font-extrabold text-sm">Добро пожаловать</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mt-1 max-w-md mx-auto">Пройдите авторизацию, чтобы бесплатно размещать лоты на продажу, участвовать в онлайн-аукционах и мгновенно связываться с покупателями.</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 max-w-md mx-auto select-none">
+                            <button onclick="triggerAuth('telegram')" class="bg-[#24A1DE] hover:bg-[#1f8fc5] text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
+                                <i class="fa-brands fa-telegram text-base"></i> Через Telegram
+                            </button>
+                            <button onclick="triggerAuth('google')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.34 0-6.05-2.71-6.05-6.05s2.71-6.05 6.05-6.05c1.493 0 2.86.542 3.922 1.438l3.11-3.11C18.912 2.68 15.776 1.5 12.24 1.5c-5.799 0-10.5 4.701-10.5 10.5s4.701 10.5 10.5 10.5c5.385 0 9.878-3.9 10.435-9h-10.435z"/></svg>
+                                Через Google
+                            </button>
+                        </div>
+                        <div id="auth-loading-overlay" class="hidden flex flex-col items-center justify-center space-y-2 py-4">
+                            <div class="auth-spinner"></div>
+                            <span class="text-xs text-emerald-600 font-extrabold animate-pulse">Установка защищенного соединения...</span>
+                        </div>
+                    </div>
+
+                    <!-- Дашборд фермера -->
+                    <div id="profile-dashboard" class="hidden space-y-4">
+                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 rounded-3xl shadow-md relative overflow-hidden border border-slate-700">
+                            <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 text-slate-700 opacity-20 text-9xl">👨‍🌾</div>
+                            <div class="relative z-10 flex items-center gap-4">
+                                <div id="dashboard-avatar-container" class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-sm overflow-hidden bg-gradient-to-tr from-emerald-400 to-green-500">А</div>
+                                <div>
+                                    <h3 id="dashboard-name" class="font-extrabold text-base flex items-center gap-2">Арсен (Вы)</h3>
+                                    <p id="dashboard-sub" class="text-xs text-slate-300 mt-0.5">Фермер из Кыргызстана • ID: 74829</p>
+                                </div>
                             </div>
-                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-[10px]"></i>
+                            <div class="grid grid-cols-3 gap-4 mt-5 border-t border-slate-700/80 pt-4 text-center select-none">
+                                <div>
+                                    <span class="block text-lg font-black text-emerald-400" id="user-listings-count-num">1</span>
+                                    <span class="text-[10px] text-slate-400">Моих лотов</span>
+                                </div>
+                                <div>
+                                    <span class="block text-lg font-black text-emerald-400">14</span>
+                                    <span class="text-[10px] text-slate-400">Просмотров лотов</span>
+                                </div>
+                                <div>
+                                    <span class="block text-lg font-black text-blue-400">⭐️ 4.9</span>
+                                    <span class="text-[10px] text-slate-400">Мой рейтинг</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Опции кабинета -->
+                        <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-1 select-none">
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Настройки аккаунта</h4>
+                            <button onclick="openProfileEditModal()" class="w-full flex justify-between items-center p-3 hover:bg-slate-50 rounded-2xl transition-all group text-left">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-user-gear"></i></span>
+                                    <span class="text-xs font-bold text-slate-700">Редактировать личные данные</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
+                            </button>
+                            <button onclick="triggerLogout()" class="w-full flex justify-between items-center p-3 hover:bg-rose-50 rounded-2xl transition-all group text-left">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                                    <span class="text-xs font-bold text-slate-700">Выйти из учетной записи</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
+                            </button>
+                            <button onclick="triggerResetApp()" class="w-full flex justify-between items-center p-3 hover:bg-red-50 rounded-2xl transition-all group text-left">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-sm"><i class="fa-solid fa-rotate-right"></i></span>
+                                    <span class="text-xs font-bold text-slate-700">Сбросить и восстановить демо-базу</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Доп меню -->
+                    <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-1 select-none">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Ветеринария и чипирование</h4>
+                        <button onclick="showAlert('Интеграция с государственными базами бирок ветеринарии находится на стадии разработки.', 'Проверка чипа')" class="w-full flex justify-between items-center p-3 hover:bg-slate-50 rounded-2xl transition-all group text-left">
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-cow"></i></span>
+                                <span class="text-xs font-bold text-slate-700">Проверить RFID-бирки / гос. номер скота</span>
+                            </div>
+                            <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">В разработке</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100 rounded-3xl p-5 relative overflow-hidden select-none">
+                        <h4 class="font-extrabold text-emerald-900 text-xs mb-1">Нужна помощь с заполнением?</h4>
+                        <p class="text-[11px] text-emerald-700/80 mb-3 leading-relaxed">Наш онлайн-диспетчер поможет правильно определить породу животного, сделать красивое описание и быстро запустить торги.</p>
+                        <button onclick="mockChatSupport()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs transition-all flex items-center gap-2">
+                            <i class="fa-brands fa-telegram"></i> Написать диспетчеру поддержки
                         </button>
                     </div>
                 </div>
 
-                <!-- Поддержка -->
-                <div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100 rounded-3xl p-4 mt-3 relative overflow-hidden">
-                    <h4 class="font-extrabold text-emerald-900 text-xs mb-1">Нужна помощь с объявлением?</h4>
-                    <p class="text-[10px] text-emerald-700/80 mb-3 leading-normal">Наш диспетчер бесплатно поможет заполнить данные, установить цену и сделать описание.</p>
-                    <button onclick="mockChatSupport()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] py-2 px-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-telegram"></i> Написать диспетчеру muu.kg
-                    </button>
-                </div>
-            </div>
+            </main>
+        </div>
 
-        </main>
-
-        <!-- Мобильное нижнее меню навигации -->
-        <nav class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around py-2 px-2 text-slate-400 z-30 select-none">
+        <!-- 📱 МОБИЛЬНЫЙ НИЖНИЙ НАВИГАТОР (Скрывается на ПК) -->
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around py-2 px-2 text-slate-400 z-35 select-none shadow-lg">
             <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center gap-0.5 w-14 text-emerald-600 transition-all font-bold">
                 <span class="text-lg leading-none"><i class="fa-solid fa-store"></i></span>
                 <span class="text-[9px]">Рынок</span>
@@ -381,41 +473,38 @@
         <!-- --- МОДАЛЬНЫЕ ОКНА --- -->
 
         <!-- Модалка подачи нового объявления -->
-        <div id="add-listing-modal" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 flex items-end transition-all">
-            <div class="bg-white w-full rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col animate-slide-up">
-                <div class="flex justify-center py-2">
-                    <div class="w-10 h-1 bg-slate-200 rounded-full cursor-pointer" onclick="closeModal()"></div>
-                </div>
-                <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
+        <div id="add-listing-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up overflow-hidden">
+                <div class="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
                     <h3 class="text-sm font-extrabold text-slate-800">Подать объявление</h3>
-                    <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+                    <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs hover:bg-slate-200 transition-all">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar">
-                    <!-- Загрузка изображения -->
+                <div class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
                     <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Фотография скота</label>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Фотография животного / товара</label>
                         <input type="file" id="form-image-input" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
-                        <div id="upload-trigger-area" onclick="triggerImageUpload()" class="upload-dashed rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50">
+                        <div id="upload-trigger-area" onclick="triggerImageUpload()" class="upload-dashed rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50">
                             <span class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm mb-1.5 shadow-xs"><i class="fa-solid fa-camera"></i></span>
-                            <span class="text-xs font-bold text-slate-700">Нажмите, чтобы добавить фото</span>
+                            <span class="text-xs font-bold text-slate-700">Нажмите, чтобы загрузить изображение</span>
+                            <span class="text-[9px] text-slate-400 mt-0.5">С камеры или галереи устройства</span>
                         </div>
-                        <div id="upload-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-28 bg-slate-100">
+                        <div id="upload-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-32 bg-slate-100">
                             <img id="upload-preview-img" src="" class="w-full h-full object-cover">
-                            <button onclick="removeSelectedImage(event)" class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px]"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="removeSelectedImage(event)" class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/80 transition-all text-xs"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Что продаете?</label>
-                        <input type="text" id="form-title" placeholder="Бычок Швиц, Кочкор на разведение..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Название объявления</label>
+                        <input type="text" id="form-title" placeholder="Например: Породистый Бычок Швиц, Кочкор на разведение" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none transition-all">
                     </div>
 
-                    <div class="bg-emerald-50/50 border border-emerald-100 p-2.5 rounded-xl flex items-center justify-between">
+                    <div class="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] font-extrabold text-emerald-800 block">🔥 Выставить на Аукцион</span>
-                            <span class="text-[8px] text-slate-500 block">Покупатели будут повышать ставки за ваш лот</span>
+                            <span class="text-[10px] font-extrabold text-emerald-800 block">🔥 Выставить на Онлайн-Аукцион</span>
+                            <span class="text-[8px] text-slate-500 block">Покупатели будут повышать ставки за ваш лот в реальном времени</span>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="form-is-auction" class="sr-only peer" onchange="toggleAuctionFormFields()">
@@ -423,33 +512,33 @@
                         </label>
                     </div>
 
-                    <!-- Доп поля скота -->
+                    <!-- Дополнительные параметры скота при подаче объявления -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Порода скота</label>
-                            <input type="text" id="form-breed" placeholder="Швицкая, Ангус..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                            <input type="text" id="form-breed" placeholder="Швицкая, Ангус, Местная и др." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
                         </div>
                         <div>
                             <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Пол</label>
                             <select id="form-gender" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
                                 <option value="-">Не указан / Не скот</option>
-                                <option value="самец">Самец</option>
-                                <option value="самка">Самка</option>
+                                <option value="самец">Самец (бык/кочкор/жеребец)</option>
+                                <option value="самка">Самка (корова/овца/кобыла)</option>
                             </select>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Возраст (в месяцах)</label>
-                            <input type="number" id="form-age-months" placeholder="Например: 18" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                            <input type="number" id="form-age-months" placeholder="Например: 18 месяцев" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
                         </div>
                         <div>
                             <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Вес животного (кг)</label>
-                            <input type="number" id="form-weight" placeholder="Например: 350" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                            <input type="number" id="form-weight" placeholder="Например: 350 кг" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Категория</label>
                             <select id="form-category" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
@@ -472,21 +561,18 @@
                                 <option value="Чуйская обл.">Чуйская область</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Город / Рынок</label>
+                            <select id="form-settlement" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
+                                </select>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Город / Село</label>
-                            <select id="form-settlement" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
-                            </select>
-                        </div>
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label id="price-form-label" class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Цена (сом)</label>
                             <input type="number" id="form-price" placeholder="95000" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Ед. измерения</label>
                             <select id="form-unit" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
@@ -495,96 +581,74 @@
                                 <option value="сом/тюк">сом за тюк</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Телефон для связи</label>
-                            <input type="tel" id="form-phone" placeholder="555123456" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Описание (упитанность, вес, прививки, условия)</label>
+                        <textarea id="form-desc" rows="3" placeholder="Опишите состояние, породу лота, вакцинацию..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Контактный телефон</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs font-bold pointer-events-none">+996</span>
+                            <input type="tel" id="form-phone" placeholder=" 555 123 456" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 pl-12 text-xs outline-none">
                         </div>
                     </div>
-
-                    <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Описание (прививки, упитанность)</label>
-                        <textarea id="form-desc" rows="2" placeholder="Опишите состояние животного..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
-                    </div>
                 </div>
-                <div class="p-4 border-t border-slate-100 flex gap-2 bg-slate-50">
+                <div class="p-4 border-t border-slate-100 flex gap-2 bg-slate-50 select-none">
                     <button onclick="closeModal()" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all">Отмена</button>
                     <button onclick="saveNewListing()" class="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md">Опубликовать</button>
                 </div>
             </div>
         </div>
 
-        <!-- Детальный просмотр объявления -->
-        <div id="listing-details-modal" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 flex items-end transition-all">
-            <div class="bg-white w-full rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col animate-slide-up">
-                <div class="flex justify-center py-2">
-                    <div class="w-10 h-1 bg-slate-200 rounded-full cursor-pointer" onclick="closeDetailsModal()"></div>
-                </div>
-                <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
-                    <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Детали объявления</span>
-                    <button onclick="closeDetailsModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+        <!-- Полноэкранный просмотр карточки товара -->
+        <div id="listing-details-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up overflow-hidden">
+                <div class="px-5 py-3.5 flex justify-between items-center border-b border-slate-100 bg-slate-50/50 select-none">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Подробная карточка лота</span>
+                    <button onclick="closeDetailsModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs hover:bg-slate-200 transition-all">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar" id="details-modal-content">
-                    <!-- Загружается из JS -->
-                </div>
-                <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-2" id="details-modal-footer">
-                    <!-- Загружается из JS -->
-                </div>
+                <div class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar" id="details-modal-content">
+                    </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-2.5 select-none" id="details-modal-footer">
+                    </div>
             </div>
         </div>
 
-        <!-- Окно отправки ценового оффера продавцу -->
-        <div id="offer-price-modal" class="hidden absolute inset-0 bg-slate-950/80 z-55 flex items-center justify-center p-5 backdrop-blur-xs">
-            <div class="bg-white rounded-3xl p-5 shadow-2xl max-w-[300px] w-full text-center space-y-4 animate-slide-up">
-                <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl mx-auto shadow-xs"><i class="fa-solid fa-handshake"></i></div>
-                <div>
-                    <h3 class="font-extrabold text-slate-800 text-xs">Предложить свою цену</h3>
-                    <p class="text-[9.5px] text-slate-400 leading-normal mt-0.5">Предложите продавцу реальную сумму купли прямо сейчас.</p>
-                </div>
-                <div class="relative">
-                    <input type="number" id="offer-custom-amount" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs outline-none text-center font-bold text-slate-800">
-                    <span class="absolute right-3.5 inset-y-0 flex items-center text-xs text-slate-400 font-bold pointer-events-none">сом</span>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="closeOfferModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-all">Отмена</button>
-                    <button id="submit-offer-btn" class="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] rounded-xl shadow-md transition-all">Отправить оффер</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Редактирование профиля -->
-        <div id="profile-edit-modal" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 flex items-end transition-all">
-            <div class="bg-white w-full rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col animate-slide-up">
-                <div class="flex justify-center py-2">
-                    <div class="w-10 h-1 bg-slate-200 rounded-full cursor-pointer" onclick="closeProfileEditModal()"></div>
-                </div>
-                <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
-                    <h3 class="text-sm font-extrabold text-slate-800">Редактировать профиль</h3>
-                    <button onclick="closeProfileEditModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+        <!-- Окно редактирования профиля -->
+        <div id="profile-edit-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up overflow-hidden">
+                <div class="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50 select-none">
+                    <h3 class="text-sm font-extrabold text-slate-800">Редактирование профиля фермера</h3>
+                    <button onclick="closeProfileEditModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs hover:bg-slate-200 transition-all">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar">
+                <div class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
                     <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Фото профиля</label>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Аватар / Фото профиля</label>
                         <input type="file" id="form-avatar-input" accept="image/*" class="hidden" onchange="handleAvatarSelection(event)">
-                        <div id="avatar-trigger-area" onclick="triggerAvatarUpload()" class="upload-dashed rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50">
+                        <div id="avatar-trigger-area" onclick="triggerAvatarUpload()" class="upload-dashed rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50 select-none">
                             <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm mb-1 shadow-xs"><i class="fa-solid fa-user-astronaut"></i></span>
                             <span class="text-xs font-bold text-slate-700">Загрузить аватар</span>
                         </div>
-                        <div id="avatar-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-24 w-24 mx-auto bg-slate-100 shadow-sm">
+                        <div id="avatar-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-24 w-24 mx-auto bg-slate-100">
                             <img id="avatar-preview-img" src="" class="w-full h-full object-cover">
                             <button onclick="removeSelectedAvatar(event)" class="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-black/80 text-[8px]"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">ФИО владельца</label>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">ФИО владельца / Хозяйство</label>
                         <input type="text" id="edit-profile-name" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
                     </div>
                     <div>
                         <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Основной телефон</label>
-                        <input type="tel" id="edit-profile-phone" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs font-bold pointer-events-none">+996</span>
+                            <input type="tel" id="edit-profile-phone" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 pl-12 text-xs outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -602,23 +666,42 @@
                         <div>
                             <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Город / Село</label>
                             <select id="edit-profile-settlement" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
-                            </select>
+                                </select>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">О ферме (описание)</label>
-                        <textarea id="edit-profile-bio" rows="2" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">О себе / Опыт разведения</label>
+                        <textarea id="edit-profile-bio" rows="2.5" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
                     </div>
                 </div>
-                <div class="p-4 border-t border-slate-100 flex gap-2 bg-slate-50">
+                <div class="p-4 border-t border-slate-100 flex gap-2 bg-slate-50 select-none">
                     <button onclick="closeProfileEditModal()" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all">Отмена</button>
-                    <button onclick="saveUserProfile()" class="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md">Сохранить</button>
+                    <button onclick="saveUserProfile()" class="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md">Сохранить изменения</button>
                 </div>
             </div>
         </div>
 
-        <!-- Системные оповещения -->
-        <div id="custom-alert" class="hidden absolute inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-5 backdrop-blur-xs">
+        <!-- Окно ценового предложения (Предложить цену) -->
+        <div id="offer-price-modal" class="hidden fixed inset-0 bg-slate-950/80 z-55 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-5 shadow-2xl max-w-[300px] w-full text-center space-y-4 animate-slide-up">
+                <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl mx-auto shadow-xs"><i class="fa-solid fa-handshake"></i></div>
+                <div>
+                    <h3 class="font-extrabold text-slate-800 text-xs">Предложить свою цену</h3>
+                    <p class="text-[9.5px] text-slate-400 leading-normal mt-0.5">Отправьте моментальное ценовое предложение продавцу на согласование.</p>
+                </div>
+                <div class="relative">
+                    <input type="number" id="offer-custom-amount" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs outline-none text-center font-bold text-slate-800">
+                    <span class="absolute right-3.5 inset-y-0 flex items-center text-xs text-slate-400 font-bold pointer-events-none">сом</span>
+                </div>
+                <div class="flex gap-2 select-none">
+                    <button onclick="closeOfferModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-all">Отмена</button>
+                    <button id="submit-offer-btn" class="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] rounded-xl shadow-md transition-all">Отправить оффер</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Системные алерты / диалоги уведомлений -->
+        <div id="custom-alert" class="hidden fixed inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-4 shadow-2xl max-w-[280px] w-full text-center space-y-3">
                 <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-lg mx-auto"><i class="fa-solid fa-circle-info"></i></div>
                 <div class="space-y-1">
@@ -629,23 +712,23 @@
             </div>
         </div>
 
-        <div id="custom-confirm" class="hidden absolute inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-5 backdrop-blur-xs">
+        <div id="custom-confirm" class="hidden fixed inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-4 shadow-2xl max-w-[280px] w-full text-center space-y-3">
                 <div class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-lg mx-auto"><i class="fa-solid fa-triangle-exclamation"></i></div>
                 <div class="space-y-1">
                     <h3 class="font-extrabold text-slate-800 text-xs" id="confirm-title">Вы уверены?</h3>
                     <p class="text-[10px] text-slate-500 leading-relaxed" id="confirm-message"></p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 select-none">
                     <button onclick="closeConfirm(false)" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-all">Отмена</button>
                     <button id="confirm-yes-btn" onclick="closeConfirm(true)" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded-xl shadow-md transition-all">Сбросить</button>
                 </div>
             </div>
         </div>
 
-        <!-- Симулятор Чата -->
-        <div id="telegram-chat-simulator" class="hidden absolute inset-0 bg-[#eef2f3] z-50 flex flex-col pt-8">
-            <div class="bg-[#17212b] text-white px-4 py-3 flex items-center justify-between shadow-sm">
+        <!-- Мессенджер чата -->
+        <div id="telegram-chat-simulator" class="hidden fixed inset-0 bg-[#eef2f3] z-50 flex flex-col max-w-lg mx-auto lg:rounded-3xl lg:shadow-2xl lg:inset-y-10">
+            <div class="bg-[#17212b] text-white px-4 py-3 flex items-center justify-between shadow-sm lg:rounded-t-3xl">
                 <div class="flex items-center gap-2.5">
                     <button onclick="closeChatSim()" class="text-slate-400 hover:text-white mr-1 text-sm"><i class="fa-solid fa-arrow-left"></i></button>
                     <div class="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold" id="chat-sim-avatar">К</div>
@@ -659,7 +742,7 @@
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-3 space-y-3" id="chat-messages-box" style="background-image: radial-gradient(#d3e3fc 1px, transparent 1px); background-size: 16px 16px;"></div>
-            <div class="p-2 bg-white border-t border-slate-200 flex items-center gap-1.5">
+            <div class="p-2 bg-white border-t border-slate-200 flex items-center gap-1.5 lg:rounded-b-3xl">
                 <input type="text" id="chat-input-field" placeholder="Напишите сообщение продавцу..." onkeydown="if(event.key === 'Enter') sendChatMessage()" class="flex-1 bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl py-1.5 px-3 text-xs focus:outline-none">
                 <button onclick="sendChatMessage()" class="text-emerald-600 hover:text-emerald-800 text-lg px-2"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
@@ -898,8 +981,9 @@
         };
 
         function initApp() {
-            // Загружаем селекторы для мобильной версии
+            // Загружаем селекторы для моб и ПК версий
             populateSettlements('district-filter', 'settlement-filter', 'all', true);
+            populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
 
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
@@ -923,14 +1007,17 @@
             updateProfileView();
         }
 
+        // Синхронизация полей ввода поиска на ПК и Мобильном
         function syncSearchInputs(input) {
             const val = input.value;
             searchQuery = val.trim().toLowerCase();
 
             const mSearch = document.getElementById('search-bar');
+            const dkSearch = document.getElementById('desktop-search-bar');
             const clearBtn = document.getElementById('clear-search');
 
             if (mSearch && mSearch !== input) mSearch.value = val;
+            if (dkSearch && dkSearch !== input) dkSearch.value = val;
 
             if (searchQuery.length > 0) {
                 if (clearBtn) clearBtn.classList.remove('hidden');
@@ -941,6 +1028,7 @@
             renderListings();
         }
 
+        // Форматирование возраста
         function formatAge(months) {
             if (!months) return '';
             if (months < 12) {
@@ -956,6 +1044,34 @@
             }
         }
 
+        // Синхронизация перекрестных фильтров (Десктоп <-> Мобилка)
+        function syncAdvancedFilters(source) {
+            const pcBreed = document.getElementById('pc-breed-filter');
+            const mBreed = document.getElementById('breed-filter');
+            const pcGender = document.getElementById('pc-gender-filter');
+            const mGender = document.getElementById('gender-filter');
+            const pcAge = document.getElementById('pc-age-filter');
+            const mAge = document.getElementById('age-filter');
+            const pcMinW = document.getElementById('pc-weight-min');
+            const mMinW = document.getElementById('weight-min');
+            const pcMaxW = document.getElementById('pc-weight-max');
+            const mMaxW = document.getElementById('weight-max');
+
+            if (source === 'pc') {
+                if (mBreed && pcBreed) mBreed.value = pcBreed.value;
+                if (mGender && pcGender) mGender.value = pcGender.value;
+                if (mAge && pcAge) mAge.value = pcAge.value;
+                if (mMinW && pcMinW) mMinW.value = pcMinW.value;
+                if (mMaxW && pcMaxW) mMaxW.value = pcMaxW.value;
+            } else {
+                if (pcBreed && mBreed) pcBreed.value = mBreed.value;
+                if (pcGender && mGender) pcGender.value = mGender.value;
+                if (pcAge && mAge) pcAge.value = mAge.value;
+                if (pcMinW && mMinW) pcMinW.value = mMinW.value;
+                if (pcMaxW && mMaxW) pcMaxW.value = mMaxW.value;
+            }
+        }
+
         function toggleMobileAdvancedFilters() {
             const advFilterDiv = document.getElementById('mobile-advanced-filters');
             if (advFilterDiv) {
@@ -963,6 +1079,7 @@
             }
         }
 
+        // --- ДИНАМИЧЕСКИЕ СЕЛЕКТОРЫ ГЕОЛОКАЦИИ ---
         function populateSettlements(regionSelectId, settlementSelectId, defaultSettlement = 'all', includeAllOption = true) {
             const regionSelect = document.getElementById(regionSelectId);
             const settlementSelect = document.getElementById(settlementSelectId);
@@ -1003,9 +1120,16 @@
 
         function onRegionFilterChange(srcSelectId, targetSelectId) {
             const srcSelect = document.getElementById(srcSelectId);
+            // Синхронизируем ПК и моб фильтры регионов
             const mFilter = document.getElementById('district-filter');
+            const pcFilter = document.getElementById('pc-district-filter');
             
+            if (srcSelect === mFilter && pcFilter) pcFilter.value = srcSelect.value;
+            if (srcSelect === pcFilter && mFilter) mFilter.value = srcSelect.value;
+
             populateSettlements('district-filter', 'settlement-filter', 'all', true);
+            populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
+            
             selectedDistrict = srcSelect ? srcSelect.value : 'all';
             selectedSettlement = 'all';
             
@@ -1019,13 +1143,14 @@
             if (priceLabel) priceLabel.innerText = isAuctionChecked ? 'Стартовая цена (сом)' : 'Цена (сом)';
         }
 
+        // --- УПРАВЛЕНИЕ АВТОРИЗАЦИЕЙ ---
         function triggerAuth(platform) {
             const authWall = document.getElementById('profile-auth-wall');
             const loadingOverlay = document.getElementById('auth-loading-overlay');
-            const btns = authWall.querySelectorAll('button');
+            const gridBlock = authWall.querySelector('div.grid');
             
             if (loadingOverlay) loadingOverlay.classList.remove('hidden');
-            btns.forEach(b => b.classList.add('hidden'));
+            if (gridBlock) gridBlock.classList.add('hidden');
 
             setTimeout(() => {
                 isLoggedIn = true;
@@ -1034,7 +1159,7 @@
                 localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(currentUser));
                 
                 if (loadingOverlay) loadingOverlay.classList.add('hidden');
-                btns.forEach(b => b.classList.remove('hidden'));
+                if (gridBlock) gridBlock.classList.remove('hidden');
                 
                 updateProfileView();
                 showToastNotification('Вход выполнен успешно!');
@@ -1071,16 +1196,17 @@
             }
         }
 
+        // --- РЕДАКТОР КЛИЕНТА ---
         function openProfileEditModal() {
             const modal = document.getElementById('profile-edit-modal');
             if (!modal) return;
             modal.classList.remove('hidden');
 
             document.getElementById('edit-profile-name').value = currentUser.name;
-            document.getElementById('edit-profile-phone').value = currentUser.phone ? currentUser.phone.replace('+996 ', '').trim() : '';
+            document.getElementById('edit-profile-phone').value = currentUser.phone.replace('+996 ', '').trim();
             document.getElementById('edit-profile-district').value = currentUser.district || 'Ошская обл.';
             populateSettlements('edit-profile-district', 'edit-profile-settlement', currentUser.settlement || '', false);
-            document.getElementById('edit-profile-bio').value = currentUser.bio || '';
+            document.getElementById('edit-profile-bio').value = currentUser.bio;
             selectedAvatarBase64 = currentUser.avatar;
             updateAvatarFormUI();
         }
@@ -1146,12 +1272,19 @@
             showToastNotification('Профиль успешно изменен!');
         }
 
+        // --- ЛЕНТА ТОВАРОВ И КАРТОЧКИ ---
         function renderListings() {
             const feedContainer = document.getElementById('listings-feed');
             const emptyState = document.getElementById('empty-state');
             if (!feedContainer) return;
             feedContainer.innerHTML = '';
+            
+            // Sync desktop and mobile filters on active change
+            const activeElem = document.activeElement;
+            const source = (activeElem && activeElem.id.startsWith('pc-')) ? 'pc' : 'mobile';
+            syncAdvancedFilters(source);
 
+            // Retrieve advanced filters state
             const breedVal = document.getElementById('breed-filter') ? document.getElementById('breed-filter').value : 'all';
             const genderVal = document.getElementById('gender-filter') ? document.getElementById('gender-filter').value : 'all';
             const ageVal = document.getElementById('age-filter') ? document.getElementById('age-filter').value : 'all';
@@ -1170,6 +1303,7 @@
                     item.settlement.toLowerCase().includes(searchQuery) ||
                     (item.breed && item.breed.toLowerCase().includes(searchQuery));
                 
+                // Advanced Filters
                 const matchesBreed = breedVal === 'all' || (item.breed && item.breed === breedVal);
                 const matchesGender = genderVal === 'all' || (item.gender && item.gender === genderVal);
                 
@@ -1196,7 +1330,7 @@
                 return matchesCategory && matchesDistrict && matchesSettlement && matchesSearch && matchesTab && matchesBreed && matchesGender && matchesAge && matchesWeight && matchesAuctionTab;
             });
 
-            document.getElementById('listings-count').innerText = `Показано: ${filtered.length}`;
+            document.getElementById('listings-count').innerText = `Показано: ${filtered.length} лотов`;
 
             if (filtered.length === 0) {
                 feedContainer.classList.add('hidden');
@@ -1209,7 +1343,7 @@
 
             filtered.forEach(item => {
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-3xl p-3.5 shadow-xs border ${item.isMyListing ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} hover:shadow-md transition-all relative flex flex-col justify-between`;
+                card.className = `bg-white rounded-3xl p-4 shadow-xs border ${item.isMyListing ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} hover:shadow-md transition-all relative flex flex-col justify-between`;
                 
                 const evaluation = calculatePriceAssessment(item.category, item.price);
                 const badgeHTML = item.isAuction 
@@ -1333,7 +1467,7 @@
                     <span class="text-amber-600 text-base mt-0.5"><i class="fa-solid fa-shield-halved"></i></span>
                     <div>
                         <h5 class="text-[10px] font-bold text-amber-900 leading-none mb-1">Рекомендация по безопасности</h5>
-                        <p class="text-[9px] text-amber-800/80 leading-normal font-medium">
+                        <p class="text-[9px] text-amber-800/80 leading-normal">
                             Никогда не отправляйте предоплату на электронные кошельки или карты! Покупайте скот только при личной встрече. Передавайте деньги строго из рук в руки только после полной проверки и осмотра животного на месте.
                         </p>
                     </div>
@@ -1350,6 +1484,7 @@
 
         function closeDetailsModal() { document.getElementById('listing-details-modal').classList.add('hidden'); }
 
+        // --- ИНТЕРАКТИВНЫЕ ДВИЖКИ ТОРГОВЛИ И СТАВОК ---
         function raiseBid(id) {
             const item = listings.find(l => l.id === id); if (!item) return;
             item.price += 2000;
@@ -1502,7 +1637,7 @@
                 } else if (tab === 'profile') {
                     document.getElementById('profile-container').classList.remove('hidden');
                     document.getElementById('categories-container').classList.add('hidden');
-                    document.getElementById('feed-title').innerText = "Кабинет фермера";
+                    document.getElementById('feed-title').innerText = "Личный кабинет фермера";
                     updateProfileView();
                 }
             }
@@ -1531,9 +1666,9 @@
 
         function openSellModal() {
             document.getElementById('add-listing-modal').classList.remove('hidden');
-            document.getElementById('form-phone').value = isLoggedIn ? currentUser.phone.replace('+996 ', '').trim() : '555123456';
-            document.getElementById('form-district').value = currentUser.district || 'Ошская обл.';
-            populateSettlements('form-district', 'form-settlement', currentUser.settlement || '', false);
+            document.getElementById('form-phone').value = isLoggedIn ? currentUser.phone.replace('+996 ', '').trim() : ' 555 123 456';
+            document.getElementById('form-district').value = currentUser.district;
+            populateSettlements('form-district', 'form-settlement', currentUser.settlement, false);
             
             document.getElementById('form-breed').value = '';
             document.getElementById('form-gender').value = '-';
@@ -1566,11 +1701,7 @@
             reader.readAsDataURL(file);
         }
 
-        function removeSelectedImage(event) {
-            if (event) event.stopPropagation();
-            resetUploadFormUI();
-        }
-
+        function removeSelectedImage() { resetUploadFormUI(); }
         function resetUploadFormUI() {
             selectedImageBase64 = null; document.getElementById('form-image-input').value = '';
             document.getElementById('upload-trigger-area').classList.remove('hidden');
@@ -1645,14 +1776,23 @@
 
         function clearSearch() {
             document.getElementById('search-bar').value = '';
+            document.getElementById('desktop-search-bar').value = '';
             searchQuery = '';
             document.getElementById('clear-search').classList.add('hidden');
             renderListings();
         }
 
+        // Полный сброс фильтров КРС/МРС
         function resetFilters() {
             document.getElementById('district-filter').value = 'all';
+            document.getElementById('pc-district-filter').value = 'all';
             
+            document.getElementById('pc-breed-filter').value = 'all';
+            document.getElementById('pc-gender-filter').value = 'all';
+            document.getElementById('pc-age-filter').value = 'all';
+            document.getElementById('pc-weight-min').value = '';
+            document.getElementById('pc-weight-max').value = '';
+
             document.getElementById('breed-filter').value = 'all';
             document.getElementById('gender-filter').value = 'all';
             document.getElementById('age-filter').value = 'all';
@@ -1660,6 +1800,7 @@
             document.getElementById('weight-max').value = '';
 
             populateSettlements('district-filter', 'settlement-filter', 'all', true);
+            populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
             selectedDistrict = 'all'; selectedSettlement = 'all';
             selectCategory('all'); clearSearch();
         }
@@ -1684,6 +1825,11 @@
         }
 
         function filterListings() {
+            const mSet = document.getElementById('settlement-filter');
+            const pcSet = document.getElementById('pc-settlement-filter');
+            if (document.activeElement === mSet && pcSet) pcSet.value = mSet.value;
+            if (document.activeElement === pcSet && mSet) mSet.value = pcSet.value;
+
             selectedDistrict = document.getElementById('district-filter').value;
             selectedSettlement = document.getElementById('settlement-filter').value;
             updateFilterChips(); renderListings();
@@ -1728,18 +1874,15 @@
         function showSafetyTips() { showAlert('1. Никаких предоплат на карты!\n2. Покупка только при личной встрече на скотном рынке.\n3. Оплата строго из рук в руки после осмотра животного.', '🛡️ Безопасность'); }
         function showListingMap(set) { showAlert(`Лот находится: ${set}.\nНа картах Яндекса скоро будет доступна точная гео-метка загона.`, '📍 Геолокация'); }
         function copyMockAdLink(id) { showAlert(`Ссылка скопирована: https://muu.kg/lot/${id}`); }
-        
         function closeAlert() { document.getElementById('custom-alert').classList.add('hidden'); }
         function showAlert(msg, title="Уведомление") { document.getElementById('alert-title').innerText = title; document.getElementById('alert-message').innerText = msg; document.getElementById('custom-alert').classList.remove('hidden'); }
-        
         function showConfirm(title, message, callback) { document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-message').innerText = message; document.getElementById('custom-confirm').classList.remove('hidden'); pendingConfirmAction = callback; }
         function closeConfirm(yes) { document.getElementById('custom-confirm').classList.add('hidden'); if(yes && pendingConfirmAction) pendingConfirmAction(); pendingConfirmAction = null; }
-        
         function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\n))/g, " "); }
 
         function showToastNotification(txt) {
             const toast = document.createElement('div');
-            toast.className = "fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-4 py-2.5 rounded-2xl shadow-xl z-55 border border-slate-800";
+            toast.className = "fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-4 py-2.5 rounded-2xl shadow-xl z-55 border border-slate-800";
             toast.onclick = () => { toast.remove(); };
             toast.innerHTML = `✅ ${txt}`; document.body.appendChild(toast);
             setTimeout(() => { toast.remove(); }, 2200);
