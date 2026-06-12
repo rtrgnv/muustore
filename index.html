@@ -39,8 +39,13 @@
             border-color: #059669;
             background-color: #ecfdf5;
         }
-        #brand-header {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Плавные CSS переходы для скрытия элементов шапки при свайпе */
+        .collapsible-header-element {
+            transition: max-height 0.24s cubic-bezier(0.4, 0, 0.2, 1), 
+                        opacity 0.18s ease-in-out, 
+                        margin 0.24s cubic-bezier(0.4, 0, 0.2, 1), 
+                        padding 0.24s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-width 0.15s ease-in-out;
         }
         .auth-spinner {
             border: 3px solid rgba(0, 0, 0, 0.05);
@@ -61,13 +66,13 @@
     <!-- Глобальный адаптивный контейнер платформы -->
     <div class="max-w-7xl mx-auto min-h-screen flex flex-col relative">
 
-        <!-- 🖥️ ДЕСКТОПНАЯ ВЕРХНЯЯ НАВИГАЦИОННАЯ ШАПКА (Скрыта на мобильных, активна от lg:breakpoint) -->
+        <!-- 🖥️ ДЕСКТОПНАЯ ВЕРХНЯЯ НАВИГАЦИОННАЯ ШАПКА -->
         <header class="hidden lg:flex justify-between items-center bg-white px-6 py-4 border-b border-slate-100 shadow-xs sticky top-0 z-40">
             <div class="flex items-center gap-3 cursor-pointer flex-shrink-0" onclick="switchTab('feed')">
                 <span class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl text-lg font-black shadow-sm tracking-wide">MUU</span>
             </div>
             
-            <!-- Поисковое поле для настольных ПК с увеличенными отступами по бокам (устранение скученности) -->
+            <!-- Поисковое поле для настольных ПК с увеличенными отступами по бокам -->
             <div class="flex-1 max-w-md relative mx-12 xl:mx-20" id="desktop-search-wrapper">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -76,7 +81,7 @@
                        class="w-full bg-slate-100 focus:bg-white text-slate-800 placeholder-slate-400 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold outline-none transition-all border border-slate-200 focus:border-emerald-500 shadow-inner">
             </div>
 
-            <!-- Верхнее горизонтальное меню ПК с повышенным расстоянием между кнопками и лаконичными названиями -->
+            <!-- Верхнее горизонтальное меню ПК -->
             <div class="flex items-center gap-6 xl:gap-8 text-xs font-bold text-slate-600 ml-auto">
                 <button onclick="switchTab('feed')" id="dk-nav-feed" class="px-3 py-2 text-emerald-600 rounded-xl bg-emerald-50 flex items-center gap-1.5 transition-all">
                     <i class="fa-solid fa-store"></i> Лоты
@@ -99,7 +104,7 @@
         <!-- 📱 МОБИЛЬНАЯ ВЕРХНЯЯ ШАПКА (Скрывается на ПК, активна на мобильных) -->
         <header id="app-header" class="block lg:hidden bg-white text-slate-800 px-4 pt-5 pb-4 rounded-b-[2rem] shadow-sm border-b border-slate-100 sticky top-0 z-30">
             <!-- Компактный брендовый логотип MUU по центру -->
-            <div id="brand-header" class="overflow-hidden h-11 opacity-100 mb-3" style="max-height: 44px;">
+            <div id="brand-header" class="collapsible-header-element overflow-hidden h-11 opacity-100 mb-3" style="max-height: 44px;">
                 <div class="flex justify-center items-center text-center">
                     <div class="flex flex-col items-center">
                         <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2 text-slate-800 justify-center">
@@ -110,8 +115,8 @@
                 </div>
             </div>
 
-            <!-- Мобильные селекторы локаций -->
-            <div id="geo-filters" class="space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50 overflow-hidden" style="max-height: 80px;">
+            <!-- Мобильные селекторы локаций (Скрываются при скролле) -->
+            <div id="geo-filters" class="collapsible-header-element space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50 overflow-hidden mb-2" style="max-height: 80px;">
                 <div class="grid grid-cols-2 gap-2">
                     <select id="district-filter" onchange="onRegionFilterChange('district-filter', 'settlement-filter')" class="w-full bg-white border border-slate-200 text-slate-800 text-[11px] rounded-xl p-2 font-bold outline-none">
                         <option value="all">🗺️ Все области</option>
@@ -129,8 +134,8 @@
                 </div>
             </div>
 
-            <!-- Спойлер дополнительных фильтров для смартфонов -->
-            <button onclick="toggleMobileAdvancedFilters()" class="w-full mt-2 bg-slate-50 border border-slate-200 text-slate-600 text-[10px] py-1.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1">
+            <!-- Спойлер дополнительных фильтров для смартфонов (Скрывается при скролле) -->
+            <button id="adv-filter-btn" onclick="toggleMobileAdvancedFilters()" class="collapsible-header-element w-full bg-slate-50 border border-slate-200 text-slate-600 text-[10px] py-1.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1 overflow-hidden mb-2" style="max-height: 32px; opacity: 1;">
                 <i class="fa-solid fa-sliders"></i> Дополнительные фильтры скота
             </button>
 
@@ -176,8 +181,8 @@
                 </div>
             </div>
 
-            <!-- Поисковое поле для мобильных устройств -->
-            <div id="search-container" class="relative mt-2.5">
+            <!-- Поисковое поле для мобильных устройств (Всегда закреплено) -->
+            <div id="search-container" class="relative mt-1">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
                     <i class="fa-solid fa-magnifying-glass text-xs"></i>
                 </span>
@@ -192,7 +197,7 @@
         <!-- 🔲 ДВУХПАНЕЛЬНАЯ РАЗБИВКА ДЛЯ ДЕСКТОПА -->
         <div class="flex-1 flex flex-col lg:flex-row w-full lg:py-6 lg:px-4 gap-6 overflow-hidden">
             
-            <!-- 🖥️ ЛЕВАЯ БОКОВАЯ СИДБАР-ПАНЕЛЬ ФИЛЬТРОВ НА ПК (Скрыта на смартфонах) -->
+            <!-- 🖥️ ЛЕВАЯ БОКОВАЯ СИДБАР-ПАНЕЛЬ ФИЛЬТРОВ НА ПК -->
             <aside class="hidden lg:block w-64 flex-shrink-0 space-y-4">
                 <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-50 pb-2">
@@ -266,7 +271,7 @@
                 </div>
             </aside>
 
-            <!-- 📄 ОСНОВНОЙ ДИНАМИЧЕСКИЙ КОНТЕНТ (Лента, Категории или Кабинет) -->
+            <!-- 📄 ОСНОВНОЙ ДИНАМИЧЕСКИЙ КОНТЕНТ -->
             <main class="flex-1 overflow-y-auto px-4 lg:px-0 pb-24 lg:pb-6" id="main-scroll-container">
 
                 <!-- Карусель категорий -->
@@ -462,6 +467,10 @@
                     <i class="fa-solid fa-plus text-lg"></i>
                 </div>
                 <span class="text-[9px] text-slate-700 font-bold mt-0.5">Подать</span>
+            </button>
+            <button onclick="switchTab('categories')" id="nav-categories" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
+                <span class="text-lg leading-none"><i class="fa-solid fa-shapes"></i></span>
+                <span class="text-[9px]">Категории</span>
             </button>
             <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
                 <span class="text-lg leading-none"><i class="fa-solid fa-user"></i></span>
@@ -752,7 +761,7 @@
     </div>
 
     <script>
-        // --- ДИНАМИЧЕСКАЯ ГЕО-БАЗА КЫРГЫЗСТАНА ---
+        // --- STREAMING_CHUNK: Initializing geo-database and agricultural properties ... ---
         const regionSettlements = {
             'Баткенская обл.': ['г. Баткен', 'г. Кызыл-Кия', 'г. Кадамжай', 'г. Раззаков', 'с. Халмион (Рынок)', 'с. Уч-Коргон'],
             'Джалал-Абадская обл.': ['г. Джалал-Абад', 'г. Базар-Коргон', 'г. Кочкор-Ата', 'г. Майлуу-Суу', 'г. Таш-Кумыр', 'г. Кербен', 'с. Сузак'],
@@ -777,7 +786,7 @@
         let currentUser = {
             name: 'Арсен',
             phone: '555 123 456',
-            bio: 'Фермер из Ошской обл. Разведение скота гиссарской и швицкой породы.',
+            bio: 'Фермер из Кыргызстана • ID: 74829',
             rating: 4.9,
             district: 'Ошская обл.',
             settlement: 'г. Ош',
@@ -941,7 +950,7 @@
 
         let listings = [];
 
-        // --- УМНАЯ СИСТЕМА ОЦЕНКИ ЦЕН ---
+        // --- STREAMING_CHUNK: Formulating market cost analytics algorithm ... ---
         function calculatePriceAssessment(category, price) {
             const median = MEDIAN_MARKET_PRICES[category] || 100000;
             const deviation = ((price - median) / median) * 100;
@@ -1045,7 +1054,7 @@
             }
         }
 
-        // Синхронизация перекрестных фильтров (Десктоп <-> Мобилка)
+        // --- STREAMING_CHUNK: Aligning PC and Mobile active filter elements ... ---
         function syncAdvancedFilters(source) {
             const pcBreed = document.getElementById('pc-breed-filter');
             const mBreed = document.getElementById('breed-filter');
@@ -1143,7 +1152,7 @@
             if (priceLabel) priceLabel.innerText = isAuctionChecked ? 'Стартовая цена (сом)' : 'Цена (сом)';
         }
 
-        // --- УПРАВЛЕНИЕ АВТОРИЗАЦИЕЙ ---
+        // --- STREAMING_CHUNK: Binding auth states and local storage profiles ... ---
         function triggerAuth(platform) {
             const authWall = document.getElementById('profile-auth-wall');
             const loadingOverlay = document.getElementById('auth-loading-overlay');
@@ -1217,6 +1226,7 @@
 
         function triggerAvatarUpload() { document.getElementById('form-avatar-input').click(); }
 
+        // --- STREAMING_CHUNK: Processing image scaling using canvas buffer ... ---
         function handleAvatarSelection(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1327,7 +1337,7 @@
                 return matchesCategory && matchesDistrict && matchesSettlement && matchesSearch && matchesTab && matchesBreed && matchesGender && matchesAge && matchesWeight && matchesAuctionTab;
             });
 
-            document.getElementById('listings-count').innerText = `Показано: ${filtered.length}`;
+            document.getElementById('listings-count').innerText = `Показано: ${filtered.length} лотов`;
 
             if (filtered.length === 0) {
                 feedContainer.classList.add('hidden');
@@ -1338,6 +1348,7 @@
             feedContainer.classList.remove('hidden');
             if (emptyState) emptyState.classList.add('hidden');
 
+            // --- STREAMING_CHUNK: Injecting items onto DOM tree grid dynamically ... ---
             filtered.forEach(item => {
                 const card = document.createElement('div');
                 card.className = `bg-white rounded-3xl p-4 shadow-xs border ${item.isMyListing ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} hover:shadow-md transition-all relative flex flex-col justify-between`;
@@ -1377,6 +1388,7 @@
             });
         }
 
+        // --- STREAMING_CHUNK: Launching modal render specs with cost indicator ... ---
         function showListingDetails(id) {
             const item = listings.find(l => l.id === id);
             if (!item) return;
@@ -1459,7 +1471,7 @@
                     <p class="text-slate-600 mt-2"><b class="text-slate-400 font-bold uppercase text-[9px] block">📝 Описание продавца:</b>${item.desc}</p>
                 </div>
 
-                <!-- Рекомендация по безопасности перенесена на карточку товара -->
+                <!-- Рекомендация по безопасности -->
                 <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 flex items-start gap-2.5">
                     <span class="text-amber-600 text-base mt-0.5"><i class="fa-solid fa-shield-halved"></i></span>
                     <div>
@@ -1525,6 +1537,7 @@
 
         function closeOfferModal() { document.getElementById('offer-price-modal').classList.add('hidden'); }
 
+        // --- STREAMING_CHUNK: Processing active negotiate dialog sequence ... ---
         function submitOfferAmount(item) {
             const amount = parseFloat(document.getElementById('offer-custom-amount').value);
             if (!amount || amount <= 0) return;
@@ -1544,17 +1557,23 @@
             }
         }
 
-        // --- КОЛЛАПС ШАПКИ ПРИ СКРОЛЛЕ (МОБИЛЬНАЯ ВЕРСИЯ) ---
+        // --- КОЛЛАПС ШАПКИ ПРИ СКРОЛЛЕ (МОБИЛЬНАЯ ВЕРСИЯ СЛЕЖЕНИЯ НАПРАВЛЕНИЯ) ---
+        let lastScrollTop = 0;
         function setupHeaderScrollCollapsing() {
             const scrollContainer = document.getElementById('main-scroll-container');
             const brandHeader = document.getElementById('brand-header');
             const geoFilters = document.getElementById('geo-filters');
+            const advFilterBtn = document.getElementById('adv-filter-btn');
+            
             if (!scrollContainer) return;
 
             scrollContainer.addEventListener('scroll', function() {
                 if (currentTab !== 'feed' && currentTab !== 'auctions') return; 
                 
-                if (scrollContainer.scrollTop > 15) {
+                let scrollTop = scrollContainer.scrollTop;
+                
+                // Если пользователь скроллит вниз (свайпает вверх) и ушел ниже 40 пикселей
+                if (scrollTop > lastScrollTop && scrollTop > 40) {
                     if (brandHeader) {
                         brandHeader.style.maxHeight = '0px';
                         brandHeader.style.opacity = '0';
@@ -1565,10 +1584,20 @@
                         geoFilters.style.opacity = '0';
                         geoFilters.style.padding = '0px';
                         geoFilters.style.borderWidth = '0px';
-                        geoFilters.style.marginTop = '0px';
                         geoFilters.style.marginBottom = '0px';
+                        geoFilters.style.marginTop = '0px';
                     }
-                } else {
+                    if (advFilterBtn) {
+                        advFilterBtn.style.maxHeight = '0px';
+                        advFilterBtn.style.opacity = '0';
+                        advFilterBtn.style.paddingTop = '0px';
+                        advFilterBtn.style.paddingBottom = '0px';
+                        advFilterBtn.style.borderWidth = '0px';
+                        advFilterBtn.style.marginBottom = '0px';
+                        advFilterBtn.style.marginTop = '0px';
+                    }
+                } else if (scrollTop < lastScrollTop || scrollTop <= 10) {
+                    // Если пользователь скроллит вверх (свайпает вниз) или у самого верха
                     if (brandHeader) {
                         brandHeader.style.maxHeight = '44px';
                         brandHeader.style.opacity = '1';
@@ -1579,10 +1608,20 @@
                         geoFilters.style.opacity = '1';
                         geoFilters.style.padding = '12px'; 
                         geoFilters.style.borderWidth = '1px';
+                        geoFilters.style.marginBottom = '8px';
                         geoFilters.style.marginTop = '0px';
-                        geoFilters.style.marginBottom = '0px';
+                    }
+                    if (advFilterBtn) {
+                        advFilterBtn.style.maxHeight = '32px';
+                        advFilterBtn.style.opacity = '1';
+                        advFilterBtn.style.paddingTop = '6px';
+                        advFilterBtn.style.paddingBottom = '6px';
+                        advFilterBtn.style.borderWidth = '1px';
+                        advFilterBtn.style.marginBottom = '8px';
+                        advFilterBtn.style.marginTop = '0px';
                     }
                 }
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // Защита от оверскролла на iOS
             });
         }
 
@@ -1608,18 +1647,21 @@
             const profileContainer = document.getElementById('profile-container');
             const categoriesContainer = document.getElementById('categories-container');
             const feedTitle = document.getElementById('feed-title');
+            const advFilterBtn = document.getElementById('adv-filter-btn');
 
-            // Default hide everything
+            // Скрываем всё по умолчанию
             if (categoriesSection) categoriesSection.classList.add('hidden');
             if (listingsFeed) listingsFeed.classList.add('hidden');
             if (profileContainer) profileContainer.classList.add('hidden');
             if (categoriesContainer) categoriesContainer.classList.add('hidden');
             if (mFilters) mFilters.classList.add('hidden');
             if (mSearch) mSearch.classList.add('hidden');
+            if (advFilterBtn) advFilterBtn.classList.add('hidden');
 
             if (tab === 'feed' || tab === 'auctions') {
                 if (mFilters) mFilters.classList.remove('hidden');
                 if (mSearch) mSearch.classList.remove('hidden');
+                if (advFilterBtn) advFilterBtn.classList.remove('hidden');
                 if (categoriesSection) categoriesSection.classList.remove('hidden');
                 if (listingsFeed) listingsFeed.classList.remove('hidden');
                 if (feedTitle) feedTitle.innerText = tab === 'auctions' ? "Онлайн-Аукционы" : "Объявления рынка";
@@ -1641,6 +1683,7 @@
             document.getElementById('main-scroll-container').scrollTop = 0;
         }
 
+        // --- STREAMING_CHUNK: Processing categories layout configurations ... ---
         function renderCategoriesTab() {
             const grid = document.getElementById('categories-tab-grid'); if (!grid) return;
             grid.innerHTML = '';
@@ -1753,6 +1796,7 @@
             showToastNotification('Лот успешно размещен на рынке!');
         }
 
+        // --- STREAMING_CHUNK: Updating badge values on elements dynamically ... ---
         function updateMyListingsBadge() {
             const count = listings.filter(i => i.isMyListing).length;
             const badge = document.getElementById('badge-my-listings');
@@ -1885,6 +1929,7 @@
         function closeConfirm(yes) { document.getElementById('custom-confirm').classList.add('hidden'); if(yes && pendingConfirmAction) pendingConfirmAction(); pendingConfirmAction = null; }
         function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\n))/g, " "); }
 
+        // --- STREAMING_CHUNK: Building custom alert toaster layout components ... ---
         function showToastNotification(txt) {
             const toast = document.createElement('div');
             toast.className = "fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-4 py-2.5 rounded-2xl shadow-xl z-55 border border-slate-800";
