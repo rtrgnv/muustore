@@ -63,12 +63,12 @@
 
         <!-- 🖥️ ДЕСКТОПНАЯ ВЕРХНЯЯ НАВИГАЦИОННАЯ ШАПКА (Скрыта на мобильных, активна от lg:breakpoint) -->
         <header class="hidden lg:flex justify-between items-center bg-white px-6 py-4 border-b border-slate-100 shadow-xs sticky top-0 z-40">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('feed')">
+            <div class="flex items-center gap-3 cursor-pointer flex-shrink-0" onclick="switchTab('feed')">
                 <span class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl text-lg font-black shadow-sm tracking-wide">MUU</span>
             </div>
             
-            <!-- Поисковое поле для настольных ПК -->
-            <div class="w-1/3 relative" id="desktop-search-wrapper">
+            <!-- Поисковое поле для настольных ПК с увеличенными отступами по бокам (устранение скученности) -->
+            <div class="flex-1 max-w-md relative mx-12 xl:mx-20" id="desktop-search-wrapper">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
                 </span>
@@ -76,25 +76,21 @@
                        class="w-full bg-slate-100 focus:bg-white text-slate-800 placeholder-slate-400 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold outline-none transition-all border border-slate-200 focus:border-emerald-500 shadow-inner">
             </div>
 
-            <!-- Верхнее горизонтальное меню ПК -->
-            <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
+            <!-- Верхнее горизонтальное меню ПК с повышенным расстоянием между кнопками и лаконичными названиями -->
+            <div class="flex items-center gap-6 xl:gap-8 text-xs font-bold text-slate-600 ml-auto">
                 <button onclick="switchTab('feed')" id="dk-nav-feed" class="px-3 py-2 text-emerald-600 rounded-xl bg-emerald-50 flex items-center gap-1.5 transition-all">
-                    <i class="fa-solid fa-store"></i> Рынок лотов
+                    <i class="fa-solid fa-store"></i> Лоты
                 </button>
                 <button onclick="switchTab('auctions')" id="dk-nav-auctions" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all">
-                    <i class="fa-solid fa-gavel"></i> Онлайн-Аукционы
+                    <i class="fa-solid fa-gavel"></i> Аукционы
                 </button>
                 <button onclick="switchTab('categories')" id="dk-nav-categories" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all">
-                    <i class="fa-solid fa-shapes"></i> Каталог категорий
-                </button>
-                <button onclick="switchTab('my-listings')" id="dk-nav-my-listings" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all relative">
-                    <i class="fa-solid fa-clipboard-list"></i> Мои объявления
-                    <span id="dk-badge-my-listings" class="absolute top-0 right-0 bg-red-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full hidden">0</span>
+                    <i class="fa-solid fa-shapes"></i> Категории
                 </button>
                 <button onclick="switchTab('profile')" id="dk-nav-profile" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all">
-                    <i class="fa-solid fa-user-circle"></i> Личный кабинет
+                    <i class="fa-solid fa-user-circle"></i> Профиль
                 </button>
-                <button onclick="openSellModal()" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all transform hover:scale-102 active:scale-98">
+                <button onclick="openSellModal()" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all transform hover:scale-102 active:scale-98 flex-shrink-0">
                     <i class="fa-solid fa-plus"></i> Подать объявление
                 </button>
             </div>
@@ -252,7 +248,7 @@
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Возраст</label>
-                            <select id="pc-age-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none bg-slate-50">
+                            <select id="pc-age-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-20 outline-none bg-slate-50">
                                 <option value="all">Любой возраст</option>
                                 <option value="young">До 1 года</option>
                                 <option value="mid">1 - 2 года</option>
@@ -388,11 +384,24 @@
                             </div>
                         </div>
 
-                        <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-1">
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Настройки аккаунта</h4>
+                        <!-- Новое меню настроек с перенесенной вкладкой "Мои объявления" -->
+                        <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-2">
+                            <!-- Кнопка Мои Объявления (Перенесена на страницу Профиля) -->
+                            <button onclick="switchTab('my-listings')" class="w-full flex justify-between items-center p-3 hover:bg-emerald-50/40 border border-emerald-100/50 rounded-2xl transition-all group text-left">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-clipboard-list"></i></span>
+                                    <span class="text-xs font-bold text-slate-700">Мои объявления</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span id="profile-badge-my-listings" class="bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full hidden">0</span>
+                                    <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
+                                </div>
+                            </button>
+
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2 border-t border-slate-50">Настройки аккаунта</h4>
                             <button onclick="openProfileEditModal()" class="w-full flex justify-between items-center p-3 hover:bg-slate-50 rounded-2xl transition-all group text-left">
                                 <div class="flex items-center gap-3">
-                                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-user-gear"></i></span>
+                                    <span class="w-8 h-8 rounded-xl bg-slate-50 text-slate-650 flex items-center justify-center text-sm"><i class="fa-solid fa-user-gear"></i></span>
                                     <span class="text-xs font-bold text-slate-700">Редактировать личные данные</span>
                                 </div>
                                 <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
@@ -442,7 +451,7 @@
         <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around py-2 px-2 text-slate-400 z-30 select-none">
             <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center gap-0.5 w-14 text-emerald-600 transition-all font-bold">
                 <span class="text-lg leading-none"><i class="fa-solid fa-store"></i></span>
-                <span class="text-[9px]">Рынок</span>
+                <span class="text-[9px]">Лоты</span>
             </button>
             <button onclick="switchTab('auctions')" id="nav-auctions" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
                 <span class="text-lg leading-none"><i class="fa-solid fa-gavel"></i></span>
@@ -454,16 +463,9 @@
                 </div>
                 <span class="text-[9px] text-slate-700 font-bold mt-0.5">Подать</span>
             </button>
-            <button onclick="switchTab('my-listings')" id="nav-my-listings" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
-                <span class="text-lg leading-none relative">
-                    <i class="fa-solid fa-clipboard-list"></i>
-                    <span id="badge-my-listings" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[7px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center border border-white hidden">0</span>
-                </span>
-                <span class="text-[9px]">Мои лоты</span>
-            </button>
             <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
                 <span class="text-lg leading-none"><i class="fa-solid fa-user"></i></span>
-                <span class="text-[9px]">Кабинет</span>
+                <span class="text-[9px]">Профиль</span>
             </button>
         </nav>
 
@@ -1457,12 +1459,12 @@
                     <p class="text-slate-600 mt-2"><b class="text-slate-400 font-bold uppercase text-[9px] block">📝 Описание продавца:</b>${item.desc}</p>
                 </div>
 
-                <!-- Рекомендация по безопасности -->
+                <!-- Рекомендация по безопасности перенесена на карточку товара -->
                 <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 flex items-start gap-2.5">
                     <span class="text-amber-600 text-base mt-0.5"><i class="fa-solid fa-shield-halved"></i></span>
                     <div>
                         <h5 class="text-[10px] font-bold text-amber-900 leading-none mb-1">Рекомендация по безопасности</h5>
-                        <p class="text-[9px] text-amber-800/80 leading-normal font-medium">
+                        <p class="text-[9px] text-amber-800/80 leading-normal">
                             Никогда не отправляйте предоплату на электронные кошельки или карты! Покупайте скот только при личной встрече. Передавайте деньги строго из рук в руки только после полной проверки и осмотра животного на месте.
                         </p>
                     </div>
@@ -1601,43 +1603,41 @@
             const mFilters = document.getElementById('geo-filters');
             const mSearch = document.getElementById('search-container');
             const mLogo = document.getElementById('brand-header');
+            const categoriesSection = document.getElementById('categories-section');
+            const listingsFeed = document.getElementById('listings-feed');
+            const profileContainer = document.getElementById('profile-container');
+            const categoriesContainer = document.getElementById('categories-container');
+            const feedTitle = document.getElementById('feed-title');
+
+            // Default hide everything
+            if (categoriesSection) categoriesSection.classList.add('hidden');
+            if (listingsFeed) listingsFeed.classList.add('hidden');
+            if (profileContainer) profileContainer.classList.add('hidden');
+            if (categoriesContainer) categoriesContainer.classList.add('hidden');
+            if (mFilters) mFilters.classList.add('hidden');
+            if (mSearch) mSearch.classList.add('hidden');
 
             if (tab === 'feed' || tab === 'auctions') {
                 if (mFilters) mFilters.classList.remove('hidden');
                 if (mSearch) mSearch.classList.remove('hidden');
-                if (mLogo) { mLogo.style.maxHeight = '44px'; mLogo.style.opacity = '1'; mLogo.style.marginBottom = '12px'; }
-                document.getElementById('categories-section').classList.remove('hidden');
-                document.getElementById('listings-feed').classList.remove('hidden');
-                document.getElementById('profile-container').classList.add('hidden');
-                document.getElementById('categories-container').classList.add('hidden');
-                document.getElementById('feed-title').innerText = tab === 'auctions' ? "Онлайн-Аукционы" : "Объявления рынка";
+                if (categoriesSection) categoriesSection.classList.remove('hidden');
+                if (listingsFeed) listingsFeed.classList.remove('hidden');
+                if (feedTitle) feedTitle.innerText = tab === 'auctions' ? "Онлайн-Аукционы" : "Объявления рынка";
                 renderListings();
-            } else {
-                if (mFilters) mFilters.classList.add('hidden');
-                if (mSearch) mSearch.classList.add('hidden');
-                if (mLogo) { mLogo.style.maxHeight = '44px'; mLogo.style.opacity = '1'; mLogo.style.marginBottom = '0px'; }
-                document.getElementById('categories-section').classList.add('hidden');
-                document.getElementById('listings-feed').classList.add('hidden');
-                document.getElementById('empty-state').classList.add('hidden');
-
-                if (tab === 'categories') {
-                    document.getElementById('categories-container').classList.remove('hidden');
-                    document.getElementById('profile-container').classList.add('hidden');
-                    document.getElementById('feed-title').innerText = "Каталог категорий";
-                    renderCategoriesTab();
-                } else if (tab === 'my-listings') {
-                    document.getElementById('listings-feed').classList.remove('hidden');
-                    document.getElementById('profile-container').classList.add('hidden');
-                    document.getElementById('categories-container').classList.add('hidden');
-                    document.getElementById('feed-title').innerText = "Мои объявления";
-                    renderListings();
-                } else if (tab === 'profile') {
-                    document.getElementById('profile-container').classList.remove('hidden');
-                    document.getElementById('categories-container').classList.add('hidden');
-                    document.getElementById('feed-title').innerText = "Личный кабинет фермера";
-                    updateProfileView();
-                }
+            } else if (tab === 'my-listings') {
+                if (listingsFeed) listingsFeed.classList.remove('hidden');
+                if (feedTitle) feedTitle.innerText = "Мои объявления";
+                renderListings();
+            } else if (tab === 'categories') {
+                if (categoriesContainer) categoriesContainer.classList.remove('hidden');
+                if (feedTitle) feedTitle.innerText = "Каталог категорий";
+                renderCategoriesTab();
+            } else if (tab === 'profile') {
+                if (profileContainer) profileContainer.classList.remove('hidden');
+                if (feedTitle) feedTitle.innerText = "Профиль";
+                updateProfileView();
             }
+            
             document.getElementById('main-scroll-container').scrollTop = 0;
         }
 
@@ -1757,8 +1757,11 @@
             const count = listings.filter(i => i.isMyListing).length;
             const badge = document.getElementById('badge-my-listings');
             const dkBadge = document.getElementById('dk-badge-my-listings');
+            const profileBadge = document.getElementById('profile-badge-my-listings');
+            
             if (badge) { badge.innerText = count; badge.classList.toggle('hidden', count === 0); }
             if (dkBadge) { dkBadge.innerText = count; dkBadge.classList.toggle('hidden', count === 0); }
+            if (profileBadge) { profileBadge.innerText = count; profileBadge.classList.toggle('hidden', count === 0); }
         }
 
         // --- УТИЛИТЫ И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
