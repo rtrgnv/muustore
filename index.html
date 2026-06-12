@@ -11,19 +11,18 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- ПОДКЛЮЧЕНИЕ СДК FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
         }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes slide-up {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
@@ -39,13 +38,19 @@
             border-color: #059669;
             background-color: #ecfdf5;
         }
-        /* Плавные CSS переходы для скрытия элементов шапки при свайпе */
         .collapsible-header-element {
-            transition: max-height 0.24s cubic-bezier(0.4, 0, 0.2, 1), 
-                        opacity 0.18s ease-in-out, 
-                        margin 0.24s cubic-bezier(0.4, 0, 0.2, 1), 
-                        padding 0.24s cubic-bezier(0.4, 0, 0.2, 1), 
-                        border-width 0.15s ease-in-out;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 200px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .collapsible-header-element.collapsed {
+            max-height: 0px !important;
+            opacity: 0 !important;
+            margin-bottom: 0px !important;
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
+            border: none !important;
         }
         .auth-spinner {
             border: 3px solid rgba(0, 0, 0, 0.05);
@@ -59,6 +64,10 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .top-glow {
+            box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.45) !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 select-none">
@@ -66,14 +75,13 @@
     <!-- Глобальный адаптивный контейнер платформы -->
     <div class="max-w-7xl mx-auto min-h-screen flex flex-col relative">
 
-        <!-- 🖥️ ДЕСКТОПНАЯ ВЕРХНЯЯ НАВИГАЦИОННАЯ ШАПКА -->
+        <!-- 🖥️ ДЕСКТОПНАЯ ВЕРХНЯЯ ШАПКА -->
         <header class="hidden lg:flex justify-between items-center bg-white px-6 py-4 border-b border-slate-100 shadow-xs sticky top-0 z-40">
-            <div class="flex items-center gap-3 cursor-pointer flex-shrink-0" onclick="switchTab('feed')">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('feed')">
                 <span class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl text-lg font-black shadow-sm tracking-wide">MUU</span>
             </div>
             
-            <!-- Поисковое поле для настольных ПК с увеличенными отступами по бокам -->
-            <div class="flex-1 max-w-md relative mx-12 xl:mx-20" id="desktop-search-wrapper">
+            <div class="w-1/3 relative mx-12 xl:mx-20" id="desktop-search-wrapper">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
                 </span>
@@ -81,8 +89,7 @@
                        class="w-full bg-slate-100 focus:bg-white text-slate-800 placeholder-slate-400 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold outline-none transition-all border border-slate-200 focus:border-emerald-500 shadow-inner">
             </div>
 
-            <!-- Верхнее горизонтальное меню ПК -->
-            <div class="flex items-center gap-6 xl:gap-8 text-xs font-bold text-slate-600 ml-auto">
+            <div class="flex items-center gap-6 xl:gap-8 text-xs font-bold text-slate-600">
                 <button onclick="switchTab('feed')" id="dk-nav-feed" class="px-3 py-2 text-emerald-600 rounded-xl bg-emerald-50 flex items-center gap-1.5 transition-all">
                     <i class="fa-solid fa-store"></i> Лоты
                 </button>
@@ -95,16 +102,15 @@
                 <button onclick="switchTab('profile')" id="dk-nav-profile" class="px-3 py-2 hover:bg-slate-50 hover:text-slate-900 rounded-xl flex items-center gap-1.5 transition-all">
                     <i class="fa-solid fa-user-circle"></i> Профиль
                 </button>
-                <button onclick="openSellModal()" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all transform hover:scale-102 active:scale-98 flex-shrink-0">
-                    <i class="fa-solid fa-plus"></i> Подать объявление
+                <button onclick="openSellModal()" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all transform hover:scale-102 active:scale-98">
+                    <i class="fa-solid fa-plus"></i> Подать лот
                 </button>
             </div>
         </header>
 
-        <!-- 📱 МОБИЛЬНАЯ ВЕРХНЯЯ ШАПКА (Скрывается на ПК, активна на мобильных) -->
+        <!-- 📱 МОБИЛЬНАЯ ВЕРХНЯЯ ШАПКА -->
         <header id="app-header" class="block lg:hidden bg-white text-slate-800 px-4 pt-5 pb-4 rounded-b-[2rem] shadow-sm border-b border-slate-100 sticky top-0 z-30">
-            <!-- Компактный брендовый логотип MUU по центру -->
-            <div id="brand-header" class="collapsible-header-element overflow-hidden h-11 opacity-100 mb-3" style="max-height: 44px;">
+            <div id="brand-header" class="overflow-hidden h-11 opacity-100 mb-3" style="max-height: 44px;">
                 <div class="flex justify-center items-center text-center">
                     <div class="flex flex-col items-center">
                         <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2 text-slate-800 justify-center">
@@ -115,8 +121,8 @@
                 </div>
             </div>
 
-            <!-- Мобильные селекторы локаций (Скрываются при скролле) -->
-            <div id="geo-filters" class="collapsible-header-element space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50 overflow-hidden mb-2" style="max-height: 80px;">
+            <!-- Геолокация -->
+            <div id="geo-filters" class="collapsible-header-element space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50 mb-2">
                 <div class="grid grid-cols-2 gap-2">
                     <select id="district-filter" onchange="onRegionFilterChange('district-filter', 'settlement-filter')" class="w-full bg-white border border-slate-200 text-slate-800 text-[11px] rounded-xl p-2 font-bold outline-none">
                         <option value="all">🗺️ Все области</option>
@@ -134,13 +140,13 @@
                 </div>
             </div>
 
-            <!-- Спойлер дополнительных фильтров для смартфонов (Скрывается при скролле) -->
-            <button id="adv-filter-btn" onclick="toggleMobileAdvancedFilters()" class="collapsible-header-element w-full bg-slate-50 border border-slate-200 text-slate-600 text-[10px] py-1.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1 overflow-hidden mb-2" style="max-height: 32px; opacity: 1;">
-                <i class="fa-solid fa-sliders"></i> Дополнительные фильтры скота
-            </button>
+            <div id="adv-filter-btn" class="collapsible-header-element mb-2">
+                <button onclick="toggleMobileAdvancedFilters()" class="w-full bg-slate-50 border border-slate-200 text-slate-600 text-[10px] py-1.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-sliders"></i> Дополнительные фильтры скота
+                </button>
+            </div>
 
-            <!-- Мобильная выдвижная панель фильтров скота -->
-            <div id="mobile-advanced-filters" class="hidden mt-2 bg-emerald-50/20 p-3 rounded-2xl border border-emerald-100/35 space-y-2">
+            <div id="mobile-advanced-filters" class="hidden mt-2 mb-2 bg-emerald-50/20 p-3 rounded-2xl border border-emerald-100/35 space-y-2">
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Порода</label>
@@ -181,8 +187,8 @@
                 </div>
             </div>
 
-            <!-- Поисковое поле для мобильных устройств (Всегда закреплено) -->
-            <div id="search-container" class="relative mt-1">
+            <!-- Поиск -->
+            <div id="search-container" class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
                     <i class="fa-solid fa-magnifying-glass text-xs"></i>
                 </span>
@@ -194,11 +200,11 @@
             </div>
         </header>
 
-        <!-- 🔲 ДВУХПАНЕЛЬНАЯ РАЗБИВКА ДЛЯ ДЕСКТОПА -->
+        <!-- 🔲 ДВУХПАНЕЛЬНАЯ РАЗБИВКА НА КОЛОНКИ -->
         <div class="flex-1 flex flex-col lg:flex-row w-full lg:py-6 lg:px-4 gap-6 overflow-hidden">
             
-            <!-- 🖥️ ЛЕВАЯ БОКОВАЯ СИДБАР-ПАНЕЛЬ ФИЛЬТРОВ НА ПК -->
-            <aside class="hidden lg:block w-64 flex-shrink-0 space-y-4">
+            <!-- ЛЕВАЯ СИДБАР-ПАНЕЛЬ ПК -->
+            <aside id="pc-sidebar" class="hidden lg:block w-64 flex-shrink-0 space-y-4">
                 <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-50 pb-2">
                         <h3 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider">🗺️ Фильтр регионов</h3>
@@ -227,20 +233,19 @@
                     </div>
                 </div>
 
-                <!-- Блок параметров характеристик скота на ПК -->
                 <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-4">
                     <h3 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider">🐂 Параметры скота</h3>
                     <div class="space-y-3">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Порода</label>
-                            <select id="pc-breed-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none bg-slate-50">
+                            <select id="pc-breed-filter" onchange="filterListings()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2.5 outline-none bg-slate-50">
                                 <option value="all">Все породы</option>
                                 <option value="Черный Ангус">Черный Ангус</option>
                                 <option value="Швицкая">Швицкая</option>
                                 <option value="Алатауская">Алатауская</option>
                                 <option value="Гиссарская">Гиссарская</option>
                                 <option value="Новокиргизская">Новокиргизская</option>
-                                <option value="Местная">Местная (без породы)</option>
+                                <option value="Местная">Местная</option>
                             </select>
                         </div>
                         <div>
@@ -263,18 +268,17 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Вес (кг)</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="pc-weight-min" onkeyup="filterListings()" placeholder="От" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
-                                <input type="number" id="pc-weight-max" onkeyup="filterListings()" placeholder="До" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
+                                <input type="number" id="pc-weight-min" onkeyup="filterListings()" placeholder="От кг" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
+                                <input type="number" id="pc-weight-max" onkeyup="filterListings()" placeholder="До кг" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
                             </div>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- 📄 ОСНОВНОЙ ДИНАМИЧЕСКИЙ КОНТЕНТ -->
+            <!-- 📄 ДИНАМИЧЕСКИЙ КОНТЕНТ -->
             <main class="flex-1 overflow-y-auto px-4 lg:px-0 pb-24 lg:pb-6" id="main-scroll-container">
 
-                <!-- Карусель категорий -->
                 <section id="categories-section" class="mb-5">
                     <div class="flex justify-between items-center mb-2.5">
                         <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Категории фермерства</h2>
@@ -304,29 +308,22 @@
                     </div>
                 </section>
 
-                <!-- Плашки активных фильтров -->
                 <div id="filter-chips-container" class="mb-4 flex flex-wrap gap-1.5 items-center hidden">
-                    <span class="text-[9px] text-slate-400 font-bold uppercase">Фильтры:</span>
                     <div id="chips-list" class="flex flex-wrap gap-1"></div>
                 </div>
 
-                <!-- Заголовок ленты и счетчик -->
                 <div class="flex justify-between items-center mb-3">
                     <h2 id="feed-title" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Объявления рынка</h2>
                     <span class="text-[10px] text-slate-500 font-bold" id="listings-count">Показано: 0 лотов</span>
                 </div>
 
-                <!-- 🛒 ГЛАВНАЯ СЕТКА ОБЪЯВЛЕНИЙ -->
-                <div id="listings-feed" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-slide-up">
-                    <!-- Объявления инжектируются через JS -->
-                </div>
+                <div id="listings-feed" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-slide-up"></div>
 
-                <!-- Пустое состояние -->
                 <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center">
                     <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-2xl">🔍</div>
                     <h3 class="text-slate-700 font-bold text-sm mb-1">Ничего не найдено</h3>
-                    <p class="text-slate-400 text-[10px] max-w-[200px]">Попробуйте изменить поисковый запрос или сбросить фильтры.</p>
-                    <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all">Сбросить все настройки</button>
+                    <p class="text-slate-400 text-[10px]">Попробуйте сбросить фильтры.</p>
+                    <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Сбросить все</button>
                 </div>
 
                 <!-- Каталог Категорий во вкладке -->
@@ -336,300 +333,124 @@
                         <h3 class="font-extrabold text-sm mb-1">Каталог</h3>
                         <p class="text-xs text-emerald-100 max-w-xl leading-relaxed">Выберите интересующее вас направление для быстрого перехода к торгам.</p>
                     </div>
-                    <div id="categories-tab-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    </div>
+                    <div id="categories-tab-grid" class="grid grid-cols-2 gap-4"></div>
                 </div>
 
                 <!-- Личный кабинет -->
                 <div id="profile-container" class="hidden space-y-4 py-1 max-w-2xl mx-auto animate-slide-up">
-                    <div id="profile-auth-wall" class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xs space-y-4 text-center animate-slide-up">
-                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-xs">👨‍🌾</div>
-                        <div>
-                            <h3 class="text-slate-800 font-extrabold text-sm">Добро пожаловать</h3>
-                            <p class="text-xs text-slate-400 leading-relaxed mt-1 max-w-md mx-auto">Пройдите авторизацию, чтобы бесплатно размещать лоты на продажу, участвовать в онлайн-аукционах и напрямую связываться с покупателями.</p>
+                    <div id="profile-auth-wall" class="bg-white rounded-3xl p-6 border text-center space-y-4 shadow-xs">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto">👨‍🌾</div>
+                        <h3 class="text-slate-800 font-extrabold text-sm">Добро пожаловать</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
+                            <button onclick="triggerAuth('telegram')" class="bg-[#24A1DE] text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2"><i class="fa-brands fa-telegram text-base"></i> Через Telegram</button>
+                            <button onclick="triggerAuth('google')" class="bg-white text-slate-700 border border-slate-200 font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2">Через Google</button>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 max-w-md mx-auto">
-                            <button onclick="triggerAuth('telegram')" class="bg-[#24A1DE] hover:bg-[#1f8fc5] text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
-                                <i class="fa-brands fa-telegram text-base"></i> Через Telegram
-                            </button>
-                            <button onclick="triggerAuth('google')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.34 0-6.05-2.71-6.05-6.05s2.71-6.05 6.05-6.05c1.493 0 2.86.542 3.922 1.438l3.11-3.11C18.912 2.68 15.776 1.5 12.24 1.5c-5.799 0-10.5 4.701-10.5 10.5s4.701 10.5 10.5 10.5c5.385 0 9.878-3.9 10.435-9h-10.435z"/></svg>
-                                Через Google
-                            </button>
-                        </div>
-                        <div id="auth-loading-overlay" class="hidden flex flex-col items-center justify-center space-y-2 py-4">
-                            <div class="auth-spinner"></div>
-                            <span class="text-xs text-emerald-600 font-extrabold animate-pulse">Установка защищенного соединения...</span>
-                        </div>
+                        <div id="auth-loading-overlay" class="hidden flex flex-col items-center justify-center space-y-2 py-4"><div class="auth-spinner"></div></div>
                     </div>
 
                     <div id="profile-dashboard" class="hidden space-y-4">
-                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 rounded-3xl shadow-md relative overflow-hidden border border-slate-700">
-                            <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 text-slate-700 opacity-20 text-9xl">👨‍🌾</div>
-                            <div class="relative z-10 flex items-center gap-4">
-                                <div id="dashboard-avatar-container" class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-sm overflow-hidden bg-gradient-to-tr from-emerald-400 to-green-500">А</div>
+                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 rounded-3xl shadow-md border border-slate-700">
+                            <div class="flex items-center gap-4">
+                                <div id="dashboard-avatar-container" class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black bg-emerald-600">А</div>
                                 <div>
-                                    <h3 id="dashboard-name" class="font-extrabold text-base flex items-center gap-2">Арсен (Вы)</h3>
-                                    <p id="dashboard-sub" class="text-xs text-slate-300 mt-0.5">Фермер из Кыргызстана • ID: 74829</p>
+                                    <h3 id="dashboard-name" class="font-extrabold text-base">Арсен (Вы)</h3>
+                                    <p class="text-xs text-slate-400 mt-1 select-text">
+                                        Фермер из КР • ID: 74829 • 
+                                        <a href="admin.html" target="_blank" class="text-amber-400 font-extrabold underline hover:text-amber-300 transition-all">⚙️ Панель Администратора</a>
+                                    </p>
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-4 mt-5 border-t border-slate-700/80 pt-4 text-center">
-                                <div>
-                                    <span class="block text-lg font-black text-emerald-400" id="user-listings-count-num">1</span>
-                                    <span class="text-[10px] text-slate-400">Моих лотов</span>
+                                <div onclick="switchTab('my-listings')" class="cursor-pointer hover:bg-slate-800/50 p-1 rounded-xl transition-all">
+                                    <span class="block text-lg font-black text-emerald-400" id="user-listings-count-num">0</span>
+                                    <span class="text-[10px] text-slate-400 underline font-medium">Мои объявления</span>
                                 </div>
-                                <div>
-                                    <span class="block text-lg font-black text-emerald-400">14</span>
-                                    <span class="text-[10px] text-slate-400">Просмотров лотов</span>
-                                </div>
-                                <div>
-                                    <span class="block text-lg font-black text-blue-400">⭐️ 4.9</span>
-                                    <span class="text-[10px] text-slate-400">Мой рейтинг</span>
-                                </div>
+                                <div><span class="block text-lg font-black text-emerald-400">14</span><span class="text-[10px] text-slate-400">Просмотров</span></div>
+                                <div><span class="block text-lg font-black text-blue-400">⭐️ 4.9</span><span class="text-[10px] text-slate-400">Рейтинг</span></div>
                             </div>
                         </div>
 
-                        <!-- Новое меню настроек с перенесенной вкладкой "Мои объявления" -->
-                        <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-2">
-                            <!-- Кнопка Мои Объявления (Перенесена на страницу Профиля) -->
-                            <button onclick="switchTab('my-listings')" class="w-full flex justify-between items-center p-3 hover:bg-emerald-50/40 border border-emerald-100/50 rounded-2xl transition-all group text-left">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-clipboard-list"></i></span>
-                                    <span class="text-xs font-bold text-slate-700">Мои объявления</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span id="profile-badge-my-listings" class="bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full hidden">0</span>
-                                    <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
-                                </div>
-                            </button>
-
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2 border-t border-slate-50">Настройки аккаунта</h4>
-                            <button onclick="openProfileEditModal()" class="w-full flex justify-between items-center p-3 hover:bg-slate-50 rounded-2xl transition-all group text-left">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 h-8 rounded-xl bg-slate-50 text-slate-650 flex items-center justify-center text-sm"><i class="fa-solid fa-user-gear"></i></span>
-                                    <span class="text-xs font-bold text-slate-700">Редактировать личные данные</span>
-                                </div>
-                                <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
-                            </button>
-                            <button onclick="triggerLogout()" class="w-full flex justify-between items-center p-3 hover:bg-rose-50 rounded-2xl transition-all group text-left">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
-                                    <span class="text-xs font-bold text-slate-700">Выйти из учетной записи</span>
-                                </div>
-                                <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
-                            </button>
-                            <button onclick="triggerResetApp()" class="w-full flex justify-between items-center p-3 hover:bg-red-50 rounded-2xl transition-all group text-left">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-sm"><i class="fa-solid fa-rotate-right"></i></span>
-                                    <span class="text-xs font-bold text-slate-700">Сбросить и восстановить демо-базу</span>
-                                </div>
-                                <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-xs"></i>
-                            </button>
+                        <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-1">
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Настройки аккаунта</h4>
+                            <button onclick="openProfileEditModal()" class="w-full flex justify-between items-center p-3 hover:bg-slate-50 rounded-2xl text-left"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-user-gear"></i></span><span class="text-xs font-bold text-slate-700">Редактировать профиль</span></div><i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i></button>
+                            <button onclick="triggerLogout()" class="w-full flex justify-between items-center p-3 hover:bg-rose-50 rounded-2xl text-left"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm"><i class="fa-solid fa-arrow-right-from-bracket"></i></span><span class="text-xs font-bold text-slate-700">Выйти из учетной записи</span></div><i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i></button>
                         </div>
-                    </div>
-
-                    <!-- Дополнительное ветеринарное меню -->
-                    <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-1">
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Ветеринария и чипирование</h4>
-                        <button onclick="showAlert('Интеграция с государственными базами бирок ветеринарии находится на стадии разработки.', 'Проверка чипа')" class="w-full flex justify-between items-center p-3 hover:bg-slate-50 rounded-2xl transition-all group text-left">
-                            <div class="flex items-center gap-3">
-                                <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-cow"></i></span>
-                                <span class="text-xs font-bold text-slate-700">Проверить RFID-бирки / гос. номер скота</span>
-                            </div>
-                            <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">В разработке</span>
-                        </button>
-                    </div>
-
-                    <div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100 rounded-3xl p-5 relative overflow-hidden">
-                        <h4 class="font-extrabold text-emerald-900 text-xs mb-1">Нужна помощь с заполнением?</h4>
-                        <p class="text-[11px] text-emerald-700/80 mb-3 leading-relaxed">Наш онлайн-диспетчер поможет правильно определить породу животного, сделать красивое описание и быстро запустить торги.</p>
-                        <button onclick="mockChatSupport()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs transition-all flex items-center gap-2">
-                            <i class="fa-brands fa-telegram"></i> Написать диспетчеру поддержки
-                        </button>
                     </div>
                 </div>
-
             </main>
         </div>
 
-        <!-- 📱 МОБИЛЬНЫЙ НИЖНИЙ НАВИГАТОР (Скрывается на ПК, активен на мобилках) -->
-        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around py-2 px-2 text-slate-400 z-30 select-none">
-            <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center gap-0.5 w-14 text-emerald-600 transition-all font-bold">
-                <span class="text-lg leading-none"><i class="fa-solid fa-store"></i></span>
-                <span class="text-[9px]">Лоты</span>
-            </button>
-            <button onclick="switchTab('auctions')" id="nav-auctions" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
-                <span class="text-lg leading-none"><i class="fa-solid fa-gavel"></i></span>
-                <span class="text-[9px]">Аукционы</span>
-            </button>
-            <button onclick="openSellModal()" class="flex flex-col items-center -mt-5 gap-0.5 group">
-                <div class="w-11 h-11 bg-gradient-to-tr from-emerald-600 to-green-600 text-white rounded-full flex items-center justify-center shadow-md transform group-hover:scale-105 active:scale-95 transition-all">
-                    <i class="fa-solid fa-plus text-lg"></i>
-                </div>
-                <span class="text-[9px] text-slate-700 font-bold mt-0.5">Подать</span>
-            </button>
-            <button onclick="switchTab('categories')" id="nav-categories" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
-                <span class="text-lg leading-none"><i class="fa-solid fa-shapes"></i></span>
-                <span class="text-[9px]">Категории</span>
-            </button>
-            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
-                <span class="text-lg leading-none"><i class="fa-solid fa-user"></i></span>
-                <span class="text-[9px]">Профиль</span>
-            </button>
+        <!-- 📱 МОБИЛЬНЫЙ НИЖНИЙ НАВИГАТОР -->
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t flex justify-around py-2 px-2 text-slate-400 z-30 select-none">
+            <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center gap-0.5 w-14 text-emerald-600 font-bold"><span class="text-lg leading-none"><i class="fa-solid fa-store"></i></span><span class="text-[9px]">Лоты</span></button>
+            <button onclick="switchTab('auctions')" id="nav-auctions" class="flex flex-col items-center gap-0.5 w-14"><span class="text-lg leading-none"><i class="fa-solid fa-gavel"></i></span><span class="text-[9px]">Аукционы</span></button>
+            <button onclick="openSellModal()" class="flex flex-col items-center -mt-5 gap-0.5 group"><div class="w-11 h-11 bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-md transform group-hover:scale-105 transition-all"><i class="fa-solid fa-plus text-lg"></i></div><span class="text-[9px] text-slate-700 font-bold mt-0.5">Подать</span></button>
+            <button onclick="switchTab('categories')" id="nav-categories" class="flex flex-col items-center gap-0.5 w-14"><span class="text-lg leading-none"><i class="fa-solid fa-shapes"></i></span><span class="text-[9px]">Категории</span></button>
+            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 w-14"><span class="text-lg leading-none"><i class="fa-solid fa-user"></i></span><span class="text-[9px]">Профиль</span></button>
         </nav>
 
-        <!-- --- МОДАЛЬНЫЕ ОКНА И ДИАЛОГИ --- -->
-
-        <!-- Модалка подачи нового объявления -->
-        <div id="add-listing-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-slide-up">
+        <!-- --- МОДАЛЬНЫЕ ОКНА --- -->
+        <!-- Подача нового лота -->
+        <div id="add-listing-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
                 <div class="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
                     <h3 class="text-sm font-extrabold text-slate-800">Подать объявление</h3>
-                    <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs hover:bg-slate-200 transition-all">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
+                    <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-100 text-xs hover:bg-slate-200 transition-all"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
-                    <!-- Загрузка фото -->
                     <div>
                         <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Фотография скота</label>
                         <input type="file" id="form-image-input" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
-                        <div id="upload-trigger-area" onclick="triggerImageUpload()" class="upload-dashed rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50">
-                            <span class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm mb-1.5 shadow-xs"><i class="fa-solid fa-camera"></i></span>
-                            <span class="text-xs font-bold text-slate-700">Нажмите, чтобы загрузить изображение</span>
-                        </div>
-                        <div id="upload-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-32 bg-slate-100">
-                            <img id="upload-preview-img" src="" class="w-full h-full object-cover">
-                            <button onclick="removeSelectedImage(event)" class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/80 transition-all text-xs"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
+                        <div id="upload-trigger-area" onclick="triggerImageUpload()" class="upload-dashed rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50"><span class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm mb-1.5 shadow-xs"><i class="fa-solid fa-camera"></i></span><span class="text-xs font-bold text-slate-700">Нажмите, чтобы загрузить изображение</span></div>
+                        <div id="upload-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-32 bg-slate-100"><img id="upload-preview-img" src="" class="w-full h-full object-cover"><button onclick="removeSelectedImage(event)" class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-trash-can"></i></button></div>
                     </div>
-
                     <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Название объявления</label>
-                        <input type="text" id="form-title" placeholder="Например: Породистый Бычок Швиц, Кочкор на разведение" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none transition-all">
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Название лота</label>
+                        <input type="text" id="form-title" placeholder="Породистый Бычок Швиц..." class="w-full border rounded-xl p-2.5 text-xs outline-none">
                     </div>
-
-                    <div class="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] font-extrabold text-emerald-800 block">🔥 Выставить на Онлайн-Аукцион</span>
-                            <span class="text-[8px] text-slate-500 block">Покупатели будут повышать ставки за ваш лот в реальном времени</span>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="form-is-auction" class="sr-only peer" onchange="toggleAuctionFormFields()">
-                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                        </label>
-                    </div>
-
-                    <!-- Дополнительные параметры при создании лота -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Порода скота</label>
-                            <input type="text" id="form-breed" placeholder="Швицкая, Ангус..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Пол</label>
-                            <select id="form-gender" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
-                                <option value="-">Не указан / Не скот</option>
-                                <option value="самец">Самец</option>
-                                <option value="самка">Самка</option>
-                            </select>
-                        </div>
+                    <div class="bg-emerald-50/50 border p-3 rounded-xl flex items-center justify-between">
+                        <div><span class="text-[10px] font-extrabold text-emerald-800 block">🔥 Выставить на Онлайн-Аукцион</span></div>
+                        <label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="form-is-auction" class="sr-only peer" onchange="toggleAuctionFormFields()"><div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div></label>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Возраст (в месяцах)</label>
-                            <input type="number" id="form-age-months" placeholder="Например: 18" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Вес животного (кг)</label>
-                            <input type="number" id="form-weight" placeholder="Например: 350" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
-                        </div>
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Порода скота</label><input type="text" id="form-breed" placeholder="Швицкая, Ангус..." class="w-full border rounded-xl p-2.5 text-xs outline-none"></div>
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Пол</label><select id="form-gender" class="w-full border rounded-xl p-2.5 text-xs outline-none bg-white"><option value="-">Не указан</option><option value="самец">Самец</option><option value="самка">Самка</option></select></div>
                     </div>
-
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Возраст (мес)</label><input type="number" id="form-age-months" class="w-full border rounded-xl p-2.5 text-xs outline-none"></div>
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Вес (кг)</label><input type="number" id="form-weight" class="w-full border rounded-xl p-2.5 text-xs outline-none"></div>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Категория</label>
-                            <select id="form-category" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
-                                <option value="cows">🐂 Коровы / КРС</option>
-                                <option value="sheep">🐑 Бараны / МРС</option>
-                                <option value="horses">🐎 Лошади / Кони</option>
-                                <option value="feed">🌾 Сено / Корма</option>
-                                <option value="tech">🚜 С/Х Техника</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Область</label>
-                            <select id="form-district" onchange="populateSettlements('form-district', 'form-settlement', '', false)" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
-                                <option value="Баткенская обл.">Баткенская область</option>
-                                <option value="Джалал-Абадская обл.">Джалал-Абадская область</option>
-                                <option value="Иссык-Кульская обл.">Иссык-Кульская область</option>
-                                <option value="Нарынская обл.">Нарынская область</option>
-                                <option value="Ошская обл.">Ошская область</option>
-                                <option value="Таласская обл.">Таласская область</option>
-                                <option value="Чуйская обл.">Чуйская область</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Город / Рынок</label>
-                            <select id="form-settlement" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
-                            </select>
-                        </div>
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Категория</label><select id="form-category" class="w-full border rounded-xl p-2.5 text-xs outline-none bg-white"><option value="cows">🐂 Коровы</option><option value="sheep">🐑 Бараны</option><option value="horses">🐎 Лошади</option><option value="feed">🌾 Корма</option><option value="tech">🚜 Техника</option></select></div>
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Область</label><select id="form-district" onchange="populateSettlements('form-district', 'form-settlement', '', false)" class="w-full border rounded-xl p-2.5 text-xs outline-none bg-white"><option value="Ошская обл.">Ошская область</option><option value="Чуйская обл.">Чуйская область</option><option value="Джалал-Абадская обл.">Джалал-Абадская область</option><option value="Баткенская обл.">Баткенская область</option><option value="Иссык-Кульская обл.">Иссык-Кульская область</option><option value="Нарынская обл.">Нарынская область</option><option value="Таласская обл.">Таласская область</option></select></div>
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Рынок / Село</label><select id="form-settlement" class="w-full border rounded-xl p-2.5 text-xs outline-none bg-white"></select></div>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label id="price-form-label" class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Цена (сом)</label>
-                            <input type="number" id="form-price" placeholder="95000" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Ед. измерения</label>
-                            <select id="form-unit" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
-                                <option value="сом">сом всего</option>
-                                <option value="сом/гол.">сом за голову</option>
-                                <option value="сом/тюк">сом за тюк</option>
-                            </select>
-                        </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label id="price-form-label" class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Цена (сом)</label><input type="number" id="form-price" class="w-full border rounded-xl p-2.5 text-xs outline-none"></div>
+                        <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Ед. измерения</label><select id="form-unit" class="w-full border rounded-xl p-2.5 text-xs outline-none bg-white"><option value="сом">сом всего</option><option value="сом/гол.">сом за голову</option></select></div>
                     </div>
-                    <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Описание (упитанность, вес, прививки)</label>
-                        <textarea id="form-desc" rows="3" placeholder="Опишите состояние животного..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Телефон для связи</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs font-bold pointer-events-none">+996</span>
-                            <input type="tel" id="form-phone" placeholder=" 555 123 456" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 pl-12 text-xs outline-none">
-                        </div>
-                    </div>
+                    <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Описание лота</label><textarea id="form-desc" rows="2" class="w-full border rounded-xl p-2.5 text-xs outline-none resize-none"></textarea></div>
+                    <div><label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Телефон</label><input type="tel" id="form-phone" class="w-full border rounded-xl p-2.5 text-xs outline-none"></div>
                 </div>
-                <div class="p-4 border-t border-slate-100 flex gap-2 bg-slate-50">
-                    <button onclick="closeModal()" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all">Отмена</button>
-                    <button onclick="saveNewListing()" class="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md">Опубликовать</button>
+                <div class="p-4 border-t flex gap-2 bg-slate-50">
+                    <button onclick="closeModal()" class="flex-1 py-2.5 border rounded-xl text-xs font-bold">Отмена</button>
+                    <button onclick="saveNewListing()" class="flex-1 py-2.5 bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">Опубликовать</button>
                 </div>
             </div>
         </div>
 
-        <!-- Полноэкранный детальный просмотр товара -->
+        <!-- Подробная карточка лота -->
         <div id="listing-details-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-            <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up overflow-hidden">
-                <div class="px-5 py-3.5 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Подробная карточка лота</span>
-                    <button onclick="closeDetailsModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs hover:bg-slate-200 transition-all">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <div class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar" id="details-modal-content">
-                    <!-- Заполняется динамически -->
-                </div>
-                <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-2.5" id="details-modal-footer">
-                    <!-- Заполняется динамически -->
-                </div>
+            <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
+                <div class="px-5 py-3.5 flex justify-between items-center border-b bg-slate-50/50"><span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Карточка лота</span><button onclick="closeDetailsModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs hover:bg-slate-200 transition-all"><i class="fa-solid fa-xmark"></i></button></div>
+                <div class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar" id="details-modal-content"></div>
+                <div class="p-4 border-t bg-slate-50 flex gap-2.5" id="details-modal-footer"></div>
             </div>
         </div>
 
-        <!-- Окно редактирования профиля -->
+        <!-- Редактирование профиля -->
         <div id="profile-edit-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-            <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up overflow-hidden">
+            <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
                 <div class="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
                     <h3 class="text-sm font-extrabold text-slate-800">Редактирование профиля фермера</h3>
                     <button onclick="closeProfileEditModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs hover:bg-slate-200 transition-all">
@@ -680,7 +501,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">О ферме (описание)</label>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">О себе</label>
                         <textarea id="edit-profile-bio" rows="2.5" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
                     </div>
                 </div>
@@ -691,77 +512,56 @@
             </div>
         </div>
 
-        <!-- Окно ценового предложения (Предложить цену) -->
-        <div id="offer-price-modal" class="hidden fixed inset-0 bg-slate-950/80 z-55 flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl p-5 shadow-2xl max-w-[300px] w-full text-center space-y-4 animate-slide-up">
+        <div id="offer-price-modal" class="hidden fixed inset-0 bg-slate-950/85 z-55 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-5 shadow-2xl max-w-[300px] w-full text-center space-y-4">
                 <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl mx-auto shadow-xs"><i class="fa-solid fa-handshake"></i></div>
-                <div>
-                    <h3 class="font-extrabold text-slate-800 text-xs">Предложить свою цену</h3>
-                    <p class="text-[9.5px] text-slate-400 leading-normal mt-0.5">Отправьте моментальное ценовое предложение продавцу на согласование.</p>
-                </div>
-                <div class="relative">
-                    <input type="number" id="offer-custom-amount" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs outline-none text-center font-bold text-slate-800">
-                    <span class="absolute right-3.5 inset-y-0 flex items-center text-xs text-slate-400 font-bold pointer-events-none">сом</span>
-                </div>
+                <input type="number" id="offer-custom-amount" class="w-full border rounded-xl py-2 px-3 text-xs text-center font-bold">
                 <div class="flex gap-2">
-                    <button onclick="closeOfferModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-all">Отмена</button>
-                    <button id="submit-offer-btn" class="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] rounded-xl shadow-md transition-all">Отправить оффер</button>
+                    <button onclick="closeOfferModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 text-[10px] rounded-xl animate-fade-in">Отмена</button>
+                    <button id="submit-offer-btn" class="flex-1 py-2 bg-emerald-700 text-white text-[10px] rounded-xl shadow-md">Отправить</button>
                 </div>
             </div>
         </div>
 
-        <!-- Системные алерты / диалоги уведомлений -->
         <div id="custom-alert" class="hidden fixed inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-4 shadow-2xl max-w-[280px] w-full text-center space-y-3">
                 <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-lg mx-auto"><i class="fa-solid fa-circle-info"></i></div>
-                <div class="space-y-1">
-                    <h3 class="font-extrabold text-slate-800 text-xs" id="alert-title">Уведомление</h3>
-                    <p class="text-[10px] text-slate-500 leading-relaxed whitespace-pre-line" id="alert-message"></p>
-                </div>
-                <button onclick="closeAlert()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl shadow-md transition-all">Понятно</button>
+                <p class="text-[10px] text-slate-500 leading-relaxed whitespace-pre-line" id="alert-message"></p>
+                <button onclick="closeAlert()" class="w-full bg-emerald-600 text-white text-xs py-2 rounded-xl">Понятно</button>
             </div>
         </div>
 
         <div id="custom-confirm" class="hidden fixed inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-4 shadow-2xl max-w-[280px] w-full text-center space-y-3">
                 <div class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-lg mx-auto"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <div class="space-y-1">
-                    <h3 class="font-extrabold text-slate-800 text-xs" id="confirm-title">Вы уверены?</h3>
-                    <p class="text-[10px] text-slate-500 leading-relaxed" id="confirm-message"></p>
-                </div>
+                <p class="text-[10px] text-slate-500 leading-relaxed" id="confirm-message"></p>
                 <div class="flex gap-2">
-                    <button onclick="closeConfirm(false)" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-all">Отмена</button>
-                    <button id="confirm-yes-btn" onclick="closeConfirm(true)" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded-xl shadow-md transition-all">Сбросить</button>
+                    <button onclick="closeConfirm(false)" class="flex-1 py-2 bg-slate-100 text-[10px] rounded-xl">Отмена</button>
+                    <button id="confirm-yes-btn" onclick="closeConfirm(true)" class="flex-1 py-2 bg-red-600 text-white text-[10px] rounded-xl shadow-md">Да</button>
                 </div>
             </div>
         </div>
 
-        <!-- Чат-симулятор с продавцом (Telegram-стиль) -->
+        <!-- Симулятор чата Telegram -->
         <div id="telegram-chat-simulator" class="hidden fixed inset-0 bg-[#eef2f3] z-50 flex flex-col max-w-lg mx-auto lg:rounded-3xl lg:shadow-2xl lg:inset-y-10">
-            <div class="bg-[#17212b] text-white px-4 py-3 flex items-center justify-between shadow-sm lg:rounded-t-3xl">
+            <div class="bg-[#17212b] text-white px-4 py-3 flex items-center justify-between lg:rounded-t-3xl">
                 <div class="flex items-center gap-2.5">
-                    <button onclick="closeChatSim()" class="text-slate-400 hover:text-white mr-1 text-sm"><i class="fa-solid fa-arrow-left"></i></button>
+                    <button onclick="closeChatSim()" class="text-slate-400 text-sm"><i class="fa-solid fa-arrow-left"></i></button>
                     <div class="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold" id="chat-sim-avatar">К</div>
-                    <div>
-                        <h4 class="font-bold text-xs leading-tight" id="chat-sim-name">Продавец</h4>
-                        <span class="text-[9px] text-emerald-400 block mt-0.5">онлайн</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3.5 text-slate-400 text-xs">
-                    <i class="fa-solid fa-phone cursor-pointer hover:text-white" id="chat-sim-phone-btn"></i>
+                    <h4 class="font-bold text-xs" id="chat-sim-name">Продавец</h4>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-3 space-y-3" id="chat-messages-box" style="background-image: radial-gradient(#d3e3fc 1px, transparent 1px); background-size: 16px 16px;"></div>
-            <div class="p-2 bg-white border-t border-slate-200 flex items-center gap-1.5 lg:rounded-b-3xl">
-                <input type="text" id="chat-input-field" placeholder="Напишите сообщение продавцу..." onkeydown="if(event.key === 'Enter') sendChatMessage()" class="flex-1 bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl py-1.5 px-3 text-xs focus:outline-none">
-                <button onclick="sendChatMessage()" class="text-emerald-600 hover:text-emerald-800 text-lg px-2"><i class="fa-solid fa-paper-plane"></i></button>
+            <div class="flex-1 overflow-y-auto p-3 space-y-3" id="chat-messages-box"></div>
+            <div class="p-2 bg-white border-t flex items-center gap-1.5 lg:rounded-b-3xl">
+                <input type="text" id="chat-input-field" placeholder="Напишите сообщение..." class="flex-1 bg-slate-50 border rounded-xl py-1.5 px-3 text-xs outline-none">
+                <button onclick="sendChatMessage()" class="text-emerald-600 px-2"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
 
     </div>
 
     <script>
-        // --- STREAMING_CHUNK: Initializing geo-database and agricultural properties ... ---
+        // --- ДИНАМИЧЕСКАЯ ГЕО-БАЗА ---
         const regionSettlements = {
             'Баткенская обл.': ['г. Баткен', 'г. Кызыл-Кия', 'г. Кадамжай', 'г. Раззаков', 'с. Халмион (Рынок)', 'с. Уч-Коргон'],
             'Джалал-Абадская обл.': ['г. Джалал-Абад', 'г. Базар-Коргон', 'г. Кочкор-Ата', 'г. Майлуу-Суу', 'г. Таш-Кумыр', 'г. Кербен', 'с. Сузак'],
@@ -772,526 +572,152 @@
             'Чуйская обл.': ['г. Бишкек', 'г. Токмок (Рынок)', 'г. Кант', 'г. Кара-Балта', 'с. Сокулук', 'с. Беловодское']
         };
 
-        // --- СОСТОЯНИЕ ДАННЫХ ПЛАТФОРМЫ ---
-        let currentTab = 'feed'; 
-        let selectedCategory = 'all'; 
-        let selectedDistrict = 'all'; 
-        let selectedSettlement = 'all';
-        let searchQuery = '';
-        let pendingConfirmAction = null; 
-        let selectedImageBase64 = null; 
-        let selectedAvatarBase64 = null; 
-        
-        let isLoggedIn = false;
-        let currentUser = {
-            name: 'Арсен',
-            phone: '555 123 456',
-            bio: 'Фермер из Кыргызстана • ID: 74829',
-            rating: 4.9,
-            district: 'Ошская обл.',
-            settlement: 'г. Ош',
-            avatar: null
+        // --- 🔥 ТВОИ КЛЮЧИ FIREBASE ИЗ СКРИНШОТА ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUgzUSyvik8VyUMruVBaa18s8b0Iw2DPU",
+            authDomain: "muukg-ea241.firebaseapp.com",
+            databaseURL: "https://muukg-ea241-default-rtdb.firebaseio.com",
+            projectId: "muukg-ea241",
+            storageBucket: "muukg-ea241.firebasestorage.app",
+            messagingSenderId: "392304749852",
+            appId: "1:392304749852:web:4634b7fd54c04d6be11ed9"
         };
-        
-        const STORAGE_KEY = 'agromarket_listings_v3_9';
-        const AUTH_STATE_KEY = 'agromarket_logged_in_state_v3_9';
-        const USER_PROFILE_KEY = 'agromarket_user_profile_data_v3_9';
 
-        const MEDIAN_MARKET_PRICES = { cows: 105000, sheep: 15000, horses: 130000, feed: 320, tech: 40000 };
-        
-        // База демо-данных
-        const DEFAULT_LISTINGS = [
-            {
-                id: 999,
-                title: '🔥 АУКЦИОН: Племенной Бык Черный Ангус',
-                category: 'cows',
-                breed: 'Черный Ангус',
-                ageMonths: 24,
-                weight: 420,
-                gender: 'самец',
-                desc: 'Племенной породистый бык Черный Ангус на племя. Возраст 2 года (24 мес.), вес 420 кг. Настоящий великан. Продается в формате онлайн-аукциона! Доступны ставки на повышение.',
-                price: 110000, 
-                startPrice: 110000, 
-                unit: 'сом',
-                district: 'Ошская обл.',
-                settlement: 'с. Жапалак (Рынок)',
-                phone: '+996 550 111 222',
-                author: 'Талант (Фермерское Хозяйство)',
-                isMyListing: false,
-                isAuction: true,
-                views: 247,
-                emoji: '🔥',
-                bgColor: 'from-amber-100 to-red-150',
-                date: 'Активен (Осталось 4 часа)',
-                bids: [
-                    { name: 'Улан', amount: 110000, time: '30 минут назад' },
-                    { name: 'Нурбек', amount: 108000, time: '1 час назад' }
-                ]
-            },
-            {
-                id: 1000,
-                title: '🔥 АУКЦИОН: Элитный Гиссарский Кочкор',
-                category: 'sheep',
-                breed: 'Гиссарская',
-                ageMonths: 18,
-                weight: 95,
-                gender: 'самец',
-                desc: 'Чистокровный племенной гиссарский кочкор. Отличный курдюк, крепкий костяк. Возраст 1.5 года (18 мес.), вес 95 кг. Прекрасный производитель для вашего овцеводства.',
-                price: 25000, 
-                startPrice: 25000, 
-                unit: 'сом',
-                district: 'Джалал-Абадская обл.',
-                settlement: 'г. Базар-Коргон',
-                phone: '+996 777 555 444',
-                author: 'Абдулла',
-                isMyListing: false,
-                isAuction: true,
-                views: 112,
-                emoji: '🐑',
-                bgColor: 'from-amber-50 to-orange-100',
-                date: 'Активен (Осталось 6 часов)',
-                bids: [
-                    { name: 'Канат', amount: 25000, time: '15 минут назад' }
-                ]
-            },
-            {
-                id: 1,
-                title: 'Бычок, Швицкая порода',
-                category: 'cows',
-                breed: 'Швицкая',
-                ageMonths: 20,
-                weight: 280,
-                gender: 'самец',
-                desc: 'Возраст 1.8 года. Вес примерно ~280 кг. Привит по календарю, чистый, упитанный. Натуральный откорм без химии. Возможна доставка.',
-                price: 95000, 
-                startPrice: 95000,
-                unit: 'сом',
-                district: 'Ошская обл.',
-                settlement: 'с. Араван',
-                phone: '+996 555 123 456',
-                author: 'Карим байке',
-                isMyListing: false,
-                isAuction: false,
-                views: 45,
-                emoji: '🐂',
-                bgColor: 'from-amber-100 to-orange-100',
-                date: 'Сегодня, 08:32'
-            },
-            {
-                id: 2,
-                title: '3 Барана на убой (Гиссарские)',
-                category: 'sheep',
-                breed: 'Гиссарская',
-                ageMonths: 12,
-                weight: 55,
-                gender: 'самец',
-                desc: 'Курдючные бараны. Вес около ~55кг каждый. Продаются вместе на Тогуз или Шерине. Отличные курдюки, качественный убойный выход.',
-                price: 14500, 
-                startPrice: 14500,
-                unit: 'сом/гол.',
-                district: 'Ошская обл.',
-                settlement: 'г. Кара-Суу (Рынок)',
-                phone: '+996 772 987 654',
-                author: 'Мурат',
-                isMyListing: false,
-                isAuction: false,
-                views: 29,
-                emoji: '🐑',
-                bgColor: 'from-slate-100 to-neutral-200',
-                date: 'Вчера, 17:15'
-            },
-            {
-                id: 3,
-                title: 'Лошадь (Кобыла), 3 года',
-                category: 'horses',
-                breed: 'Новокиргизская',
-                ageMonths: 36,
-                weight: 350,
-                gender: 'самка',
-                desc: 'Кобыла полукровка с жеребенком (кобылка, 3 месяца). Очень смирная, легко идет в руки. Находится в Джалал-Абадской области.',
-                price: 130000, 
-                startPrice: 130000,
-                unit: 'сом',
-                district: 'Джалал-Абадская обл.',
-                settlement: 'г. Базар-Коргон',
-                phone: '+996 501 223 344',
-                author: 'Бексултан',
-                isMyListing: false,
-                isAuction: false,
-                views: 88,
-                emoji: '🐎',
-                bgColor: 'from-amber-200/40 to-yellow-100',
-                date: 'Вчера, 11:04'
-            },
-            {
-                id: 4,
-                title: 'Сено люцерна (Беде), свежий укос',
-                category: 'feed',
-                breed: '-',
-                ageMonths: null,
-                weight: 20,
-                gender: '-',
-                desc: 'Качественное сено второго укоса, сухое, без сорняков и гнили. Спрессовано плотно в тюки по 18-20 кг. В наличии около 300 тюков.',
-                price: 360, 
-                startPrice: 360,
-                unit: 'сом/тюк',
-                district: 'Чуйская обл.',
-                settlement: 'г. Токмок (Рынок)',
-                phone: '+996 705 445 566',
-                author: 'Куршабский кормовой склад',
-                isMyListing: false,
-                isAuction: false,
-                views: 12,
-                emoji: '🌾',
-                bgColor: 'from-green-100 to-emerald-100',
-                date: 'Сегодня, 06:00'
-            }
-        ];
+        // Инициализация базы
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
+        let currentTab = 'feed'; let selectedCategory = 'all'; let selectedDistrict = 'all'; let selectedSettlement = 'all'; let searchQuery = '';
+        let pendingConfirmAction = null; let selectedImageBase64 = null; let selectedAvatarBase64 = null;
+        let isLoggedIn = false;
+
+        let currentUser = { name: 'Арсен', phone: '555 123 456', bio: '', rating: 4.9, district: 'Ошская обл.', settlement: 'г. Ош', avatar: null };
+        let MEDIAN_MARKET_PRICES = { cows: 105000, sheep: 15000, horses: 130000, feed: 320, tech: 40000 };
         let listings = [];
 
-        // --- STREAMING_CHUNK: Formulating market cost analytics algorithm ... ---
         function calculatePriceAssessment(category, price) {
-            const median = MEDIAN_MARKET_PRICES[category] || 100000;
+            const storedMedians = JSON.parse(localStorage.getItem('agromarket_median_prices')) || MEDIAN_MARKET_PRICES;
+            const median = storedMedians[category] || 100000;
             const deviation = ((price - median) / median) * 100;
             
             if (deviation < -8) {
-                return {
-                    label: 'Отличная цена',
-                    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                    dotColor: 'bg-emerald-500',
-                    scalePercent: Math.max(10, Math.min(35, 25 + deviation * 0.8)),
-                    percentageText: `Ниже средней на ${Math.abs(Math.round(deviation))}%`
-                };
+                return { label: 'Отличная цена', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200', dotColor: 'bg-emerald-500', scalePercent: Math.max(10, Math.min(35, 25 + deviation * 0.8)), percentageText: `Ниже средней на ${Math.abs(Math.round(deviation))}%` };
             } else if (deviation > 8) {
-                return {
-                    label: 'Выше рынка',
-                    badgeClass: 'bg-rose-100 text-rose-850 border-rose-200',
-                    dotColor: 'bg-rose-500',
-                    scalePercent: Math.min(90, Math.max(65, 75 + (deviation - 8) * 0.4)),
-                    percentageText: `Выше средней на ${Math.round(deviation)}%`
-                };
+                return { label: 'Выше рынка', badgeClass: 'bg-rose-100 text-rose-850 border-rose-200', dotColor: 'bg-rose-500', scalePercent: Math.min(90, Math.max(65, 75 + (deviation - 8) * 0.4)), percentageText: `Выше средней на ${Math.round(deviation)}%` };
             } else {
-                return {
-                    label: 'Рыночная цена',
-                    badgeClass: 'bg-amber-100 text-amber-850 border-amber-200',
-                    dotColor: 'bg-amber-500',
-                    scalePercent: 50 + deviation * 1.2,
-                    percentageText: 'Соответствует средней цене'
-                };
+                return { label: 'Рыночная цена', badgeClass: 'bg-amber-100 text-amber-850 border-amber-200', dotColor: 'bg-amber-500', scalePercent: 50 + deviation * 1.2, percentageText: 'Соответствует средней цене' };
             }
         }
 
-        // --- ИНИЦИАЛИЗАЦИЯ ЗАПУСКА ПЛАТФОРМЫ ---
         window.onload = function() {
             initApp();
-            renderListings();
-            updateMyListingsBadge();
-            setupHeaderScrollCollapsing();
+            listenToFirebaseCloud();
         };
 
         function initApp() {
-            // Загружаем селекторы локаций
             populateSettlements('district-filter', 'settlement-filter', 'all', true);
             populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
 
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                listings = JSON.parse(stored);
-            } else {
-                listings = [...DEFAULT_LISTINGS];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
-            }
-
-            listings = listings.map(item => {
-                if (item.startPrice === undefined) item.startPrice = item.price;
-                return item;
-            });
-
-            const savedAuthState = localStorage.getItem(AUTH_STATE_KEY);
+            const savedAuthState = localStorage.getItem('agromarket_logged_in_state_v3_9');
             if (savedAuthState === 'true') isLoggedIn = true;
             
-            const savedProfile = localStorage.getItem(USER_PROFILE_KEY);
+            const savedProfile = localStorage.getItem('agromarket_user_profile_data_v3_9');
             if (savedProfile) currentUser = JSON.parse(savedProfile);
-            
+
             updateProfileView();
+
+            // Безопасное навешивание обработчиков событий
+            const modalAdd = document.getElementById('add-listing-modal');
+            if (modalAdd) modalAdd.onclick = function(e) { if(e.target === this) closeModal(); };
+
+            const modalDetails = document.getElementById('listing-details-modal');
+            if (modalDetails) modalDetails.onclick = function(e) { if(e.target === this) closeDetailsModal(); };
+
+            const modalProfile = document.getElementById('profile-edit-modal');
+            if (modalProfile) modalProfile.onclick = function(e) { if(e.target === this) closeProfileEditModal(); };
+
+            setupHeaderScrollCollapsing();
         }
 
-        // Синхронизация полей ввода поиска на ПК и Мобильном
+        function listenToFirebaseCloud() {
+            database.ref('listings').on('value', (snapshot) => {
+                const data = snapshot.val();
+                listings = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        listings.push({ fbKey: key, ...data[key] });
+                    });
+                }
+                renderListings();
+                updateMyListingsBadge();
+            });
+
+            database.ref('median_prices').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    MEDIAN_MARKET_PRICES = data;
+                    localStorage.setItem('agromarket_median_prices', JSON.stringify(data));
+                }
+                renderListings();
+            });
+        }
+
         function syncSearchInputs(input) {
-            const val = input.value;
-            searchQuery = val.trim().toLowerCase();
-
-            const mSearch = document.getElementById('search-bar');
-            const dkSearch = document.getElementById('desktop-search-bar');
+            const val = input.value; searchQuery = val.trim().toLowerCase();
+            const mSearch = document.getElementById('search-bar'); const dkSearch = document.getElementById('desktop-search-bar');
             const clearBtn = document.getElementById('clear-search');
-
             if (mSearch && mSearch !== input) mSearch.value = val;
             if (dkSearch && dkSearch !== input) dkSearch.value = val;
-
-            if (searchQuery.length > 0) {
-                if (clearBtn) clearBtn.classList.remove('hidden');
-            } else {
-                if (clearBtn) clearBtn.classList.add('hidden');
-            }
-
+            if (clearBtn) clearBtn.classList.toggle('hidden', searchQuery.length === 0);
             renderListings();
         }
 
-        // Форматирование возраста
-        function formatAge(months) {
-            if (!months) return '';
-            if (months < 12) {
-                return `${months} мес.`;
-            } else {
-                const years = Math.floor(months / 12);
-                const restMonths = months % 12;
-                let yearStr = 'лет';
-                if (years === 1) yearStr = 'год';
-                else if (years >= 2 && years <= 4) yearStr = 'года';
-                
-                return restMonths > 0 ? `${years} г. ${restMonths} мес.` : `${years} ${yearStr}`;
-            }
-        }
-
-        // --- STREAMING_CHUNK: Aligning PC and Mobile active filter elements ... ---
         function syncAdvancedFilters(source) {
-            const pcBreed = document.getElementById('pc-breed-filter');
-            const mBreed = document.getElementById('breed-filter');
-            const pcGender = document.getElementById('pc-gender-filter');
-            const mGender = document.getElementById('gender-filter');
-            const pcAge = document.getElementById('pc-age-filter');
-            const mAge = document.getElementById('age-filter');
-            const pcMinW = document.getElementById('pc-weight-min');
-            const mMinW = document.getElementById('weight-min');
-            const pcMaxW = document.getElementById('pc-weight-max');
-            const mMaxW = document.getElementById('weight-max');
+            const pcBreed = document.getElementById('pc-breed-filter'); const mBreed = document.getElementById('breed-filter');
+            const pcGender = document.getElementById('pc-gender-filter'); const mGender = document.getElementById('gender-filter');
+            const pcAge = document.getElementById('pc-age-filter'); const mAge = document.getElementById('age-filter');
+            const pcMinW = document.getElementById('pc-weight-min'); const mMinW = document.getElementById('weight-min');
+            const pcMaxW = document.getElementById('pc-weight-max'); const mMaxW = document.getElementById('weight-max');
 
             if (source === 'pc') {
-                if (mBreed && pcBreed) mBreed.value = pcBreed.value;
-                if (mGender && pcGender) mGender.value = pcGender.value;
-                if (mAge && pcAge) mAge.value = pcAge.value;
-                if (mMinW && pcMinW) mMinW.value = pcMinW.value;
-                if (mMaxW && pcMaxW) mMaxW.value = pcMaxW.value;
+                if (mBreed && pcBreed) mBreed.value = pcBreed.value; if (mGender && pcGender) mGender.value = pcGender.value;
+                if (mAge && pcAge) mAge.value = pcAge.value; if (mMinW && pcMinW) mMinW.value = pcMinW.value; if (mMaxW && pcMaxW) mMaxW.value = pcMaxW.value;
             } else {
-                if (pcBreed && mBreed) pcBreed.value = mBreed.value;
-                if (pcGender && mGender) pcGender.value = mGender.value;
-                if (pcAge && mAge) pcAge.value = mAge.value;
-                if (pcMinW && mMinW) pcMinW.value = mMinW.value;
-                if (pcMaxW && mMaxW) pcMaxW.value = mMaxW.value;
+                if (pcBreed && mBreed) pcBreed.value = mBreed.value; if (pcGender && mGender) pcGender.value = mGender.value;
+                if (pcAge && mAge) pcAge.value = mAge.value; if (pcMinW && mMinW) pcMinW.value = mMinW.value; if (pcMaxW && mMaxW) pcMaxW.value = mMaxW.value;
             }
         }
 
-        function toggleMobileAdvancedFilters() {
-            const advFilterDiv = document.getElementById('mobile-advanced-filters');
-            if (advFilterDiv) {
-                advFilterDiv.classList.toggle('hidden');
-            }
-        }
-
-        // --- ДИНАМИЧЕСКИЕ СЕЛЕКТОРЫ ГЕОЛОКАЦИИ ---
         function populateSettlements(regionSelectId, settlementSelectId, defaultSettlement = 'all', includeAllOption = true) {
-            const regionSelect = document.getElementById(regionSelectId);
-            const settlementSelect = document.getElementById(settlementSelectId);
-            if (!regionSelect || !settlementSelect) return;
-
-            const selectedRegion = regionSelect.value;
-            settlementSelect.innerHTML = '';
-
-            if (includeAllOption) {
-                const allOpt = document.createElement('option');
-                allOpt.value = 'all';
-                allOpt.innerText = '🏡 Все места';
-                settlementSelect.appendChild(allOpt);
-            }
-
+            const regionSelect = document.getElementById(regionSelectId); const settlementSelect = document.getElementById(settlementSelectId);
+            if (!regionSelect || !settlementSelect) return; const selectedRegion = regionSelect.value; settlementSelect.innerHTML = '';
+            if (includeAllOption) { const allOpt = document.createElement('option'); allOpt.value = 'all'; allOpt.innerText = '🏡 Все места'; settlementSelect.appendChild(allOpt); }
             if (selectedRegion !== 'all' && regionSettlements[selectedRegion]) {
-                regionSettlements[selectedRegion].forEach(settlement => {
-                    const opt = document.createElement('option');
-                    opt.value = settlement;
-                    opt.innerText = settlement;
-                    settlementSelect.appendChild(opt);
-                });
+                regionSettlements[selectedRegion].forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.innerText = s; settlementSelect.appendChild(opt); });
             } else if (selectedRegion === 'all') {
-                const allSettlements = [];
-                Object.values(regionSettlements).forEach(list => {
-                    list.forEach(s => { if (!allSettlements.includes(s)) allSettlements.push(s); });
-                });
-                allSettlements.sort().forEach(settlement => {
-                    const opt = document.createElement('option');
-                    opt.value = settlement;
-                    opt.innerText = settlement;
-                    settlementSelect.appendChild(opt);
-                });
+                const allS = []; Object.values(regionSettlements).forEach(list => list.forEach(s => { if (!allS.includes(s)) allS.push(s); }));
+                allS.sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.innerText = s; settlementSelect.appendChild(opt); });
             }
-
             settlementSelect.value = defaultSettlement;
         }
 
         function onRegionFilterChange(srcSelectId, targetSelectId) {
-            const srcSelect = document.getElementById(srcSelectId);
-            const mFilter = document.getElementById('district-filter');
-            const pcFilter = document.getElementById('pc-district-filter');
-            
-            if (srcSelect === mFilter && pcFilter) pcFilter.value = srcSelect.value;
-            if (srcSelect === pcFilter && mFilter) mFilter.value = srcSelect.value;
-
-            populateSettlements('district-filter', 'settlement-filter', 'all', true);
-            populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
-            
-            selectedDistrict = srcSelect ? srcSelect.value : 'all';
-            selectedSettlement = 'all';
-            
-            updateFilterChips();
-            renderListings();
+            const srcSelect = document.getElementById(srcSelectId); const mFilter = document.getElementById('district-filter'); const pcFilter = document.getElementById('pc-district-filter');
+            if (srcSelect === mFilter && pcFilter) pcFilter.value = srcSelect.value; if (srcSelect === pcFilter && mFilter) mFilter.value = srcSelect.value;
+            populateSettlements('district-filter', 'settlement-filter', 'all', true); populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
+            selectedDistrict = srcSelect ? srcSelect.value : 'all'; selectedSettlement = 'all'; updateFilterChips(); renderListings();
         }
 
-        function toggleAuctionFormFields() {
-            const isAuctionChecked = document.getElementById('form-is-auction').checked;
-            const priceLabel = document.getElementById('price-form-label');
-            if (priceLabel) priceLabel.innerText = isAuctionChecked ? 'Стартовая цена (сом)' : 'Цена (сом)';
-        }
+        function toggleMobileAdvancedFilters() { const adv = document.getElementById('mobile-advanced-filters'); if (adv) adv.classList.toggle('hidden'); }
 
-        // --- STREAMING_CHUNK: Binding auth states and local storage profiles ... ---
-        function triggerAuth(platform) {
-            const authWall = document.getElementById('profile-auth-wall');
-            const loadingOverlay = document.getElementById('auth-loading-overlay');
-            const btns = authWall.querySelectorAll('button');
-            
-            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
-            btns.forEach(b => b.classList.add('hidden'));
-
-            setTimeout(() => {
-                isLoggedIn = true;
-                localStorage.setItem(AUTH_STATE_KEY, 'true');
-                currentUser.name = platform === 'telegram' ? 'Арсен Сатыбалиев' : 'Арсен ИТ';
-                localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(currentUser));
-                
-                if (loadingOverlay) loadingOverlay.classList.add('hidden');
-                btns.forEach(b => b.classList.remove('hidden'));
-                
-                updateProfileView();
-                showToastNotification('Вход выполнен успешно!');
-            }, 1200);
-        }
-
-        function triggerLogout() {
-            showConfirm('Выйти из профиля?', 'Вы выйдете из текущей сессии авторизации.', () => {
-                isLoggedIn = false;
-                localStorage.setItem(AUTH_STATE_KEY, 'false');
-                updateProfileView();
-                showToastNotification('Вы успешно вышли');
-            });
-        }
-
-        function updateProfileView() {
-            const authWall = document.getElementById('profile-auth-wall');
-            const dashboard = document.getElementById('profile-dashboard');
-            if (!authWall || !dashboard) return;
-
-            if (isLoggedIn) {
-                authWall.classList.add('hidden');
-                dashboard.classList.remove('hidden');
-                document.getElementById('dashboard-name').innerText = currentUser.name;
-                
-                const dAvatar = document.getElementById('dashboard-avatar-container');
-                if (dAvatar) {
-                    if (currentUser.avatar) dAvatar.innerHTML = `<img src="${currentUser.avatar}" class="w-full h-full object-cover">`;
-                    else dAvatar.innerText = currentUser.name.substring(0, 1).toUpperCase();
-                }
-            } else {
-                authWall.classList.remove('hidden');
-                dashboard.classList.add('hidden');
-            }
-        }
-
-        // --- РЕДАКТОР КЛИЕНТА ---
-        function openProfileEditModal() {
-            const modal = document.getElementById('profile-edit-modal');
-            if (!modal) return;
-            modal.classList.remove('hidden');
-
-            document.getElementById('edit-profile-name').value = currentUser.name;
-            document.getElementById('edit-profile-phone').value = currentUser.phone ? currentUser.phone.replace('+996 ', '').trim() : '';
-            document.getElementById('edit-profile-district').value = currentUser.district || 'Ошская обл.';
-            populateSettlements('edit-profile-district', 'edit-profile-settlement', currentUser.settlement || '', false);
-            document.getElementById('edit-profile-bio').value = currentUser.bio || '';
-            selectedAvatarBase64 = currentUser.avatar;
-            updateAvatarFormUI();
-        }
-
-        function closeProfileEditModal() {
-            document.getElementById('profile-edit-modal').classList.add('hidden');
-        }
-
-        function triggerAvatarUpload() { document.getElementById('form-avatar-input').click(); }
-
-        // --- STREAMING_CHUNK: Processing image scaling using canvas buffer ... ---
-        function handleAvatarSelection(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 120; canvas.height = 120;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) ctx.drawImage(img, 0, 0, 120, 120);
-                    selectedAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                    updateAvatarFormUI();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeSelectedAvatar(event) {
-            if (event) event.stopPropagation();
-            selectedAvatarBase64 = null;
-            updateAvatarFormUI();
-        }
-
-        function updateAvatarFormUI() {
-            const triggerArea = document.getElementById('avatar-trigger-area');
-            const previewArea = document.getElementById('avatar-preview-area');
-            const previewImg = document.getElementById('avatar-preview-img');
-            if (selectedAvatarBase64) {
-                triggerArea.classList.add('hidden'); previewArea.classList.remove('hidden');
-                previewImg.src = selectedAvatarBase64;
-            } else {
-                triggerArea.classList.remove('hidden'); previewArea.classList.add('hidden');
-                previewImg.src = '';
-            }
-        }
-
-        function saveUserProfile() {
-            const name = document.getElementById('edit-profile-name').value.trim();
-            const phone = document.getElementById('edit-profile-phone').value.trim();
-            if (!name || !phone) { showAlert('Заполните обязательные поля.'); return; }
-
-            currentUser.name = name;
-            currentUser.phone = '+996 ' + phone;
-            currentUser.district = document.getElementById('edit-profile-district').value;
-            currentUser.settlement = document.getElementById('edit-profile-settlement').value;
-            currentUser.bio = document.getElementById('edit-profile-bio').value.trim();
-            currentUser.avatar = selectedAvatarBase64;
-
-            localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(currentUser));
-            closeProfileEditModal(); updateProfileView(); renderListings();
-            showToastNotification('Профиль успешно изменен!');
-        }
-
-        // --- ЛЕНТА ТОВАРОВ И КАРТОЧКИ ---
         function renderListings() {
-            const feedContainer = document.getElementById('listings-feed');
-            const emptyState = document.getElementById('empty-state');
-            if (!feedContainer) return;
-            feedContainer.innerHTML = '';
+            const feedContainer = document.getElementById('listings-feed'); const emptyState = document.getElementById('empty-state');
+            if (!feedContainer) return; feedContainer.innerHTML = '';
             
             const activeElem = document.activeElement;
-            const source = (activeElem && activeElem.id.startsWith('pc-')) ? 'pc' : 'mobile';
-            syncAdvancedFilters(source);
+            syncAdvancedFilters(activeElem && activeElem.id.startsWith('pc-') ? 'pc' : 'mobile');
+
+            const myListingIds = JSON.parse(localStorage.getItem('my_listing_ids') || '[]');
 
             const breedVal = document.getElementById('breed-filter') ? document.getElementById('breed-filter').value : 'all';
             const genderVal = document.getElementById('gender-filter') ? document.getElementById('gender-filter').value : 'all';
@@ -1299,394 +725,282 @@
             const minWVal = document.getElementById('weight-min') && document.getElementById('weight-min').value ? parseFloat(document.getElementById('weight-min').value) : null;
             const maxWVal = document.getElementById('weight-max') && document.getElementById('weight-max').value ? parseFloat(document.getElementById('weight-max').value) : null;
 
-            const filtered = listings.filter(item => {
-                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-                const matchesDistrict = selectedDistrict === 'all' || item.district === selectedDistrict;
-                const matchesSettlement = selectedSettlement === 'all' || item.settlement === selectedSettlement;
-                
-                const matchesSearch = searchQuery === '' || 
-                    item.title.toLowerCase().includes(searchQuery) || 
-                    item.desc.toLowerCase().includes(searchQuery) ||
-                    item.district.toLowerCase().includes(searchQuery) ||
-                    item.settlement.toLowerCase().includes(searchQuery) ||
-                    (item.breed && item.breed.toLowerCase().includes(searchQuery));
-                
-                const matchesBreed = breedVal === 'all' || (item.breed && item.breed === breedVal);
-                const matchesGender = genderVal === 'all' || (item.gender && item.gender === genderVal);
-                
-                let matchesAge = true;
-                if (ageVal !== 'all') {
-                    if (!item.ageMonths) {
-                        matchesAge = false;
-                    } else if (ageVal === 'young') {
-                        matchesAge = item.ageMonths < 12;
-                    } else if (ageVal === 'mid') {
-                        matchesAge = item.ageMonths >= 12 && item.ageMonths <= 24;
-                    } else if (ageVal === 'adult') {
-                        matchesAge = item.ageMonths > 24;
-                    }
-                }
+            database.ref('banned_authors').once('value', (banSnapshot) => {
+                const bannedAuthors = banSnapshot.val() ? Object.values(banSnapshot.val()) : [];
+                database.ref('verified_authors').once('value', (verSnapshot) => {
+                    const verifiedAuthors = verSnapshot.val() ? Object.values(verSnapshot.val()) : [];
 
-                let matchesWeight = true;
-                if (minWVal !== null && (!item.weight || item.weight < minWVal)) matchesWeight = false;
-                if (maxWVal !== null && (!item.weight || item.weight > maxWVal)) matchesWeight = false;
+                    // Сортировка по TOP статусу
+                    const sortedListings = [...listings].sort((a, b) => (a.isTop && !b.isTop) ? -1 : (!a.isTop && b.isTop ? 1 : b.id - a.id));
 
-                const matchesTab = currentTab !== 'my-listings' || item.isMyListing === true;
-                const matchesAuctionTab = currentTab !== 'auctions' || item.isAuction === true;
+                    const filtered = sortedListings.filter(item => {
+                        if (bannedAuthors.includes(item.author)) return false;
 
-                return matchesCategory && matchesDistrict && matchesSettlement && matchesSearch && matchesTab && matchesBreed && matchesGender && matchesAge && matchesWeight && matchesAuctionTab;
-            });
+                        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                        const matchesDistrict = selectedDistrict === 'all' || item.district === selectedDistrict;
+                        const matchesSettlement = selectedSettlement === 'all' || item.settlement === selectedSettlement;
+                        const matchesSearch = searchQuery === '' || item.title.toLowerCase().includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
+                        const matchesBreed = breedVal === 'all' || (item.breed && item.breed === breedVal);
+                        const matchesGender = genderVal === 'all' || (item.gender && item.gender === genderVal);
+                        
+                        let matchesAge = true;
+                        if (ageVal !== 'all') {
+                            if (!item.ageMonths) matchesAge = false;
+                            else if (ageVal === 'young') matchesAge = item.ageMonths < 12;
+                            else if (ageVal === 'mid') matchesAge = item.ageMonths >= 12 && item.ageMonths <= 24;
+                            else if (ageVal === 'adult') matchesAge = item.ageMonths > 24;
+                        }
 
-            document.getElementById('listings-count').innerText = `Показано: ${filtered.length} лотов`;
+                        let matchesWeight = true;
+                        if (minWVal !== null && (!item.weight || item.weight < minWVal)) matchesWeight = false;
+                        if (maxWVal !== null && (!item.weight || item.weight > maxWVal)) matchesWeight = false;
 
-            if (filtered.length === 0) {
-                feedContainer.classList.add('hidden');
-                if (emptyState) emptyState.classList.remove('hidden');
-                return;
-            }
+                        const matchesTab = currentTab !== 'my-listings' || myListingIds.includes(item.id);
+                        const matchesAuctionTab = currentTab !== 'auctions' || item.isAuction === true;
 
-            feedContainer.classList.remove('hidden');
-            if (emptyState) emptyState.classList.add('hidden');
+                        return matchesCategory && matchesDistrict && matchesSettlement && matchesSearch && matchesBreed && matchesGender && matchesAge && matchesWeight && matchesTab && matchesAuctionTab;
+                    });
 
-            // --- STREAMING_CHUNK: Injecting items onto DOM tree grid dynamically ... ---
-            filtered.forEach(item => {
-                const card = document.createElement('div');
-                card.className = `bg-white rounded-3xl p-4 shadow-xs border ${item.isMyListing ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} hover:shadow-md transition-all relative flex flex-col justify-between`;
-                
-                const evaluation = calculatePriceAssessment(item.category, item.price);
-                const badgeHTML = item.isAuction 
-                    ? `<span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">🔥 Аукцион</span>`
-                    : `<span class="border text-[8px] font-extrabold px-2 py-0.5 rounded-full ${evaluation.badgeClass}">${evaluation.label}</span>`;
+                    document.getElementById('listings-count').innerText = `Показано: ${filtered.length} лотов`;
+                    if (filtered.length === 0) { feedContainer.classList.add('hidden'); if (emptyState) emptyState.classList.remove('hidden'); return; }
+                    feedContainer.classList.remove('hidden'); if (emptyState) emptyState.classList.add('hidden');
 
-                let mediaHTML = item.image 
-                    ? `<img src="${item.image}" class="w-full h-full object-cover rounded-2xl">`
-                    : `<span class="text-3xl">${item.emoji || '🐂'}</span>`;
+                    filtered.forEach(item => {
+                        const card = document.createElement('div');
+                        const isMyL = myListingIds.includes(item.id);
+                        card.className = `bg-white rounded-3xl p-4 border ${isMyL ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} ${item.isTop ? 'top-glow' : ''} hover:shadow-md transition-all relative flex flex-col justify-between`;
+                        
+                        const evaluation = calculatePriceAssessment(item.category, item.price);
+                        const topBadgeHTML = item.isTop ? `<span class="bg-amber-500 text-slate-950 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-0.5"><i class="fa-solid fa-crown text-[7px]"></i> ТОП</span>` : '';
+                        const auctionBadgeHTML = item.isAuction ? `<span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">🔥 Аукцион</span>` : `<span class="border text-[8px] font-extrabold px-2 py-0.5 rounded-full ${evaluation.badgeClass}">${evaluation.label}</span>`;
+                        const badgesContainerHTML = `<div class="absolute top-2 left-2 flex flex-col gap-1 z-10">${topBadgeHTML}${auctionBadgeHTML}</div>`;
 
-                card.innerHTML = `
-                    <div>
-                        <div class="w-full h-32 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center overflow-hidden mb-3 relative shadow-inner">
-                            ${mediaHTML}
-                            <span class="absolute top-2 left-2">${badgeHTML}</span>
-                        </div>
-                        <h3 class="font-extrabold text-slate-800 text-xs leading-snug cursor-pointer hover:text-emerald-600 transition-all mb-1" onclick="showListingDetails(${item.id})">${item.title}</h3>
-                        <div class="text-emerald-600 font-black text-sm mb-2">${formatPrice(item.price)} <span class="text-[10px] font-bold">${item.unit}</span></div>
-                        <p class="text-[11px] text-slate-500 leading-normal mb-3 border-t border-slate-50 pt-2 line-clamp-2">${item.desc}</p>
-                    </div>
-                    <div>
-                        <div class="grid grid-cols-3 gap-1.5 mb-2.5">
-                            <button onclick="triggerCall('${item.phone}', '${item.author}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-solid fa-phone"></i> Колл</button>
-                            <button onclick="triggerTelegramChat('${item.author}', '${item.title}', '${formatPrice(item.price)}', '${item.phone}')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-brands fa-telegram"></i> Чат</button>
-                            <button onclick="showListingMap('${item.settlement}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-[10px] py-2 rounded-xl transition-all">Карта</button>
-                        </div>
-                        <div class="flex justify-between items-center text-[9px] text-slate-400 border-t border-slate-50 pt-2">
-                            <span class="truncate max-w-[150px] font-medium"><i class="fa-solid fa-location-dot text-emerald-600 mr-0.5"></i> ${item.settlement}</span>
-                            <span>👁️ ${item.views}</span>
-                        </div>
-                    </div>
-                `;
-                feedContainer.appendChild(card);
+                        let mediaHTML = item.image ? `<img src="${item.image}" class="w-full h-full object-cover rounded-2xl">` : `<span class="text-3xl">${item.emoji || '🐂'}</span>`;
+                        const isVerified = verifiedAuthors.includes(item.author) || item.author === 'Арсен (Вы)';
+
+                        card.innerHTML = `
+                            <div>
+                                <div class="w-full h-32 bg-slate-50 border rounded-2xl flex items-center justify-center overflow-hidden mb-3 relative shadow-inner">
+                                    ${mediaHTML}
+                                    ${badgesContainerHTML}
+                                </div>
+                                <h3 class="font-extrabold text-slate-800 text-xs leading-snug cursor-pointer hover:text-emerald-600 transition-all mb-1" onclick="showListingDetails('${item.fbKey}')">${item.title}</h3>
+                                <div class="text-emerald-600 font-black text-sm mb-2">${formatPrice(item.price)} <span class="text-[10px] font-bold">${item.unit || 'сом'}</span></div>
+                                <p class="text-[11px] text-slate-500 leading-normal mb-3 border-t pt-2 line-clamp-2">${item.desc}</p>
+                            </div>
+                            <div>
+                                <div class="grid grid-cols-3 gap-1.5 mb-2.5">
+                                    <button onclick="triggerCall('${item.phone}', '${item.author}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-solid fa-phone"></i> Колл</button>
+                                    <button onclick="triggerTelegramChat('${item.author}', '${item.title}', '${formatPrice(item.price)}', '${item.phone}', '${item.fbKey}')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-brands fa-telegram"></i> Чат</button>
+                                    <button onclick="showListingMap('${item.settlement}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-[10px] py-2 rounded-xl transition-all">Карта</button>
+                                </div>
+                                <div class="flex justify-between items-center text-[9px] text-slate-400 border-t pt-2">
+                                    <span class="truncate max-w-[130px] font-medium"><i class="fa-solid fa-location-dot text-emerald-600 mr-0.5"></i> ${item.settlement}</span>
+                                    <span class="flex items-center text-[9.5px] text-slate-500 font-bold max-w-[120px] truncate">👤 ${item.author} ${isVerified ? '✅' : ''}</span>
+                                </div>
+                            </div>
+                        `;
+                        feedContainer.appendChild(card);
+                    });
+                });
             });
         }
 
-        // --- STREAMING_CHUNK: Launching modal render specs with cost indicator ... ---
-        function showListingDetails(id) {
-            const item = listings.find(l => l.id === id);
-            if (!item) return;
-            item.views++; renderListings();
-
+        function showListingDetails(fbKey) {
+            const item = listings.find(l => l.fbKey === fbKey); if (!item) return;
             const modalContent = document.getElementById('details-modal-content');
             const modalFooter = document.getElementById('details-modal-footer');
             const assessment = calculatePriceAssessment(item.category, item.price);
-            const medianPriceFormatted = formatPrice(MEDIAN_MARKET_PRICES[item.category] || 100000);
+
+            const storedMedians = JSON.parse(localStorage.getItem('agromarket_median_prices')) || MEDIAN_MARKET_PRICES;
+            const medianPriceFormatted = formatPrice(storedMedians[item.category] || 100000);
 
             const ageFormatted = item.ageMonths ? formatAge(item.ageMonths) : 'Не указан';
             const weightFormatted = item.weight ? `${item.weight} кг` : 'Не указан';
-            const genderFormatted = item.gender === 'самец' ? '♂️ Самец' : item.gender === 'самка' ? '♀️ Самка' : 'Не указан';
+            const genderFormatted = item.gender === 'самец' ? '♂️ Самец' : (item.gender === 'самка' ? '♀️ Самка' : 'Не указан');
             const breedFormatted = item.breed || 'Не указана';
 
-            let specsHTML = '';
-            if (item.category === 'cows' || item.category === 'sheep' || item.category === 'horses') {
-                specsHTML = `
-                    <div class="bg-slate-100/50 p-3 rounded-2xl border border-slate-150/60 grid grid-cols-2 gap-2 text-xs">
-                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Порода</span> <b class="block text-slate-700">${breedFormatted}</b></div>
-                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Пол</span> <b class="block text-slate-700">${genderFormatted}</b></div>
-                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Возраст</span> <b class="block text-slate-700">${ageFormatted}</b></div>
-                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Вес животного</span> <b class="block text-slate-700">${weightFormatted}</b></div>
-                    </div>
-                `;
-            }
+            let specsHTML = `<div class="bg-slate-100/50 p-3 rounded-2xl border grid grid-cols-2 gap-2 text-xs">
+                <div><span class="text-[9px] text-slate-400 uppercase font-black">Порода</span> <b class="block text-slate-700">${breedFormatted}</b></div>
+                <div><span class="text-[9px] text-slate-400 uppercase font-black">Пол</span> <b class="block text-slate-700">${genderFormatted}</b></div>
+                <div><span class="text-[9px] text-slate-400 uppercase font-black">Возраст</span> <b class="block text-slate-700">${ageFormatted}</b></div>
+                <div><span class="text-[9px] text-slate-400 uppercase font-black">Вес животного</span> <b class="block text-slate-700">${weightFormatted}</b></div>
+            </div>`;
 
             let auctionHTML = '';
             if (item.isAuction) {
                 let bidsLog = '';
-                (item.bids || []).forEach(b => {
-                    bidsLog += `<div class="flex justify-between text-[9px] py-1 border-b border-slate-100"><span>👤 ${b.name}</span><b>${formatPrice(b.amount)} сом</b></div>`;
-                });
-                auctionHTML = `
-                    <div class="bg-gradient-to-br from-red-50 to-orange-50 border border-orange-200 p-3 rounded-2xl space-y-3">
-                        <div class="flex justify-between text-[9px] font-bold text-red-600 uppercase"><span>🔥 Онлайн-Торги</span><span>Осталось: 04:12</span></div>
-                        <div class="grid grid-cols-2 gap-2 text-center text-xs">
-                            <div class="bg-white p-2 rounded-xl border"><span>Старт:</span> <b class="block">${formatPrice(item.startPrice)} сом</b></div>
-                            <div class="bg-white p-2 rounded-xl border text-red-600"><span>Ставка:</span> <b class="block" id="auction-current-bid-label">${formatPrice(item.price)} сом</b></div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="raiseBid(${item.id})" class="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-white font-black text-xs py-2 rounded-xl shadow-xs">💵 Поднять ставку (+2 000)</button>
-                            <button onclick="openOfferModal(${item.id})" class="bg-white border text-slate-700 font-bold text-xs px-3 rounded-xl">Предложить цену</button>
-                        </div>
-                        <div class="bg-white p-2.5 rounded-xl border text-[9px] max-h-[80px] overflow-y-auto" id="auction-bids-history-box">${bidsLog}</div>
-                        <div class="flex gap-2 pt-1 border-t border-slate-200/50">
-                            <button onclick="lowerStartingPrice(${item.id})" class="flex-1 bg-white border text-rose-600 text-[9px] py-1 rounded-lg">🔽 Снизить старт (-5 000)</button>
-                            <button onclick="raiseStartingPrice(${item.id})" class="flex-1 bg-white border text-emerald-600 text-[9px] py-1 rounded-lg">🔼 Поднять старт (+5 000)</button>
-                        </div>
+                (item.bids || []).forEach(b => { bidsLog += `<div class="flex justify-between text-[9px] py-1 border-b"><span>👤 ${b.name}</span><b>${formatPrice(b.amount)} сом</b></div>`; });
+                auctionHTML = `<div class="bg-gradient-to-br from-red-50 to-orange-50 border p-3 rounded-2xl space-y-3">
+                    <div class="flex justify-between text-[9px] font-bold text-red-600 uppercase"><span>🔥 Онлайн-Торги</span></div>
+                    <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                        <div class="bg-white p-2 rounded-xl border"><span>Старт:</span> <b class="block">${formatPrice(item.startPrice || item.price)} сом</b></div>
+                        <div class="bg-white p-2 rounded-xl border text-red-600"><span>Ставка:</span> <b class="block">${formatPrice(item.price)} сом</b></div>
                     </div>
-                `;
+                    <button onclick="raiseBid('${item.fbKey}')" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-2 rounded-xl text-xs shadow-md">💵 Повысить ставку (+2 000 сом)</button>
+                    <div class="bg-white p-2.5 rounded-xl border text-[9px] max-h-[80px] overflow-y-auto">${bidsLog}</div>
+                </div>`;
             } else {
-                auctionHTML = `
-                    <div class="bg-emerald-50/40 border border-emerald-100 p-3 rounded-2xl flex justify-between items-center">
-                        <div class="text-[10px]"><b class="block text-emerald-900">Предложить свою цену</b><span class="text-slate-500">Отправьте оффер продавцу напрямую</span></div>
-                        <button onclick="openOfferModal(${item.id})" class="bg-emerald-600 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl">Предложить</button>
-                    </div>
-                `;
+                auctionHTML = `<div class="bg-emerald-50/40 border p-3 rounded-2xl flex justify-between items-center">
+                    <div><b class="block text-emerald-900 text-xs">Предложить свою цену</b></div>
+                    <button onclick="openOfferModal('${item.fbKey}')" class="bg-emerald-600 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl">Предложить</button>
+                </div>`;
             }
 
             modalContent.innerHTML = `
-                <div class="w-full h-40 bg-slate-50 rounded-2xl overflow-hidden shadow-inner">
-                    ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-5xl bg-slate-200">${item.emoji}</div>`}
-                </div>
-                <div>
-                    <h2 class="text-sm font-extrabold text-slate-800 leading-tight">${item.title}</h2>
-                    <div class="text-lg font-black text-emerald-600 mt-1" id="details-modal-price-label">${formatPrice(item.price)} <span class="text-xs font-bold">${item.unit}</span></div>
-                </div>
-                
+                <div class="w-full h-40 bg-slate-50 rounded-2xl overflow-hidden shadow-inner">${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-5xl bg-slate-200">${item.emoji || '🐂'}</div>`}</div>
+                <h2 class="text-sm font-extrabold text-slate-800">${item.title}</h2>
+                <div class="text-base font-black text-emerald-600 mt-1">${formatPrice(item.price)} сом</div>
                 ${specsHTML}
-
                 <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 space-y-2">
-                    <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase"><span>📊 Аналитика цен</span><span id="details-assessment-badge" class="border px-2 py-0.5 rounded-full ${assessment.badgeClass}">${assessment.label}</span></div>
-                    <div class="relative pt-2 pb-1"><div class="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-400 rounded-full relative"><div id="details-assessment-cursor" class="absolute -top-1 w-3.5 h-3.5 rounded-full border border-white shadow-sm ${assessment.dotColor}" style="left: ${assessment.scalePercent}%;"></div></div></div>
-                    <p id="details-assessment-text" class="text-[9.5px] text-slate-500 text-center">${assessment.percentageText} относительно среднего рынка (~${medianPriceFormatted} сом)</p>
+                    <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase"><span>📊 Аналитика цен</span><span class="border px-2 py-0.5 rounded-full ${assessment.badgeClass}">${assessment.label}</span></div>
+                    <div class="relative pt-2 pb-1"><div class="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-400 rounded-full relative"><div class="absolute -top-1 w-3.5 h-3.5 rounded-full border border-white shadow-sm ${assessment.dotColor}" style="left: ${assessment.scalePercent}%;"></div></div></div>
+                    <p class="text-[9.5px] text-slate-500 text-center">${assessment.percentageText} относительно среднего рынка (~${medianPriceFormatted} сом)</p>
                 </div>
                 ${auctionHTML}
-                <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-2xl border">
-                    <p class="text-slate-600"><b class="text-slate-400 font-bold uppercase text-[9px] block">📍 Локация:</b>${item.settlement} (${item.district})</p>
-                    <p class="text-slate-600 mt-2"><b class="text-slate-400 font-bold uppercase text-[9px] block">📝 Описание продавца:</b>${item.desc}</p>
-                </div>
-
-                <!-- Рекомендация по безопасности -->
                 <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 flex items-start gap-2.5">
-                    <span class="text-amber-600 text-base mt-0.5"><i class="fa-solid fa-shield-halved"></i></span>
-                    <div>
-                        <h5 class="text-[10px] font-bold text-amber-900 leading-none mb-1">Рекомендация по безопасности</h5>
-                        <p class="text-[9px] text-amber-800/80 leading-normal">
-                            Никогда не отправляйте предоплату на электронные кошельки или карты! Покупайте скот только при личной встрече. Передавайте деньги строго из рук в руки только после полной проверки и осмотра животного на месте.
-                        </p>
-                    </div>
+                    <span class="text-amber-600"><i class="fa-solid fa-shield-halved"></i></span>
+                    <div><h5 class="text-[10px] font-bold text-amber-900 mb-1">Рекомендация по безопасности</h5><p class="text-[9px] text-amber-800/80 leading-normal font-medium">Никогда не отправляйте предоплату на электронные кошельки! Расчет строго при личной встрече.</p></div>
                 </div>
             `;
-
-            modalFooter.innerHTML = `
-                <button onclick="copyMockAdLink(${item.id})" class="bg-slate-100 text-slate-600 font-bold text-xs px-3 rounded-xl"><i class="fa-solid fa-share-nodes"></i></button>
-                <button onclick="triggerCall('${item.phone}', '${item.author}')" class="flex-1 bg-emerald-50 text-emerald-700 font-bold text-xs py-2.5 rounded-xl">📞 Позвонить</button>
-                <button onclick="triggerTelegramChat('${item.author}', '${item.title}', '${formatPrice(item.price)}', '${item.phone}')" class="flex-1 bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs">💬 Написать в чат</button>
-            `;
+            modalFooter.innerHTML = `<button onclick="triggerCall('${item.phone}', '${item.author}')" class="w-full bg-emerald-600 text-white font-black py-2.5 rounded-xl text-xs">📞 Позвонить владельцу</button>`;
             document.getElementById('listing-details-modal').classList.remove('hidden');
         }
 
-        function closeDetailsModal() { document.getElementById('listing-details-modal').classList.add('hidden'); }
+        function saveNewListing() {
+            const title = document.getElementById('form-title').value.trim();
+            const price = parseFloat(document.getElementById('form-price').value);
+            const desc = document.getElementById('form-desc').value.trim();
+            const phone = document.getElementById('form-phone').value.trim();
+            const breed = document.getElementById('form-breed').value.trim() || 'Местная';
+            const gender = document.getElementById('form-gender').value;
+            const ageMonths = parseInt(document.getElementById('form-age-months').value);
+            const weight = parseFloat(document.getElementById('form-weight').value);
 
-        // --- ИНТЕРАКТИВНЫЕ ДВИЖКИ ТОРГОВЛИ И СТАВОК ---
-        function raiseBid(id) {
-            const item = listings.find(l => l.id === id); if (!item) return;
-            item.price += 2000;
-            if (!item.bids) item.bids = [];
-            item.bids.unshift({ name: isLoggedIn ? currentUser.name : 'Покупатель ' + Math.floor(Math.random()*100), amount: item.price, time: 'Только что' });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
-            showToastNotification(`Ставка зарегистрирована!`);
-            showListingDetails(item.id);
+            if (!title || !price || !desc || !phone) { showAlert('Пожалуйста, заполните форму полностью.'); return; }
+
+            const id = Date.now();
+
+            const newAd = {
+                id,
+                title,
+                category: document.getElementById('form-category').value,
+                breed,
+                gender,
+                ageMonths: !isNaN(ageMonths) ? ageMonths : null,
+                weight: !isNaN(weight) ? weight : null,
+                desc, price, startPrice: price, unit: document.getElementById('form-unit').value,
+                district: document.getElementById('form-district').value,
+                settlement: document.getElementById('form-settlement').value || 'Рынок',
+                phone: '+996 ' + phone,
+                author: isLoggedIn ? currentUser.name : 'Гость',
+                isAuction: document.getElementById('form-is-auction').checked,
+                isTop: false, views: 1,
+                emoji: document.getElementById('form-category').value === 'sheep' ? '🐑' : '🐂',
+                bids: document.getElementById('form-is-auction').checked ? [{ name: 'Система', amount: price, time: 'Только что' }] : []
+            };
+
+            database.ref('listings').push(newAd).then(() => {
+                // Запоминаем свои личные ID лотов
+                const myListingIds = JSON.parse(localStorage.getItem('my_listing_ids') || '[]');
+                myListingIds.push(id);
+                localStorage.setItem('my_listing_ids', JSON.stringify(myListingIds));
+                
+                closeModal();
+                showToastNotification('Лот отправлен на облачный сервер Firebase!');
+            });
         }
 
-        function lowerStartingPrice(id) {
-            const item = listings.find(l => l.id === id); if (!item) return;
-            const oldStart = item.startPrice || item.price;
-            if (oldStart - 5000 < 10000) { showAlert('Нельзя опустить цену ниже минимального лимита рынка.'); return; }
-            if (item.price === oldStart) item.price -= 5000;
-            item.startPrice = oldStart - 5000;
+        function raiseBid(fbKey) {
+            const item = listings.find(l => l.fbKey === fbKey); if (!item) return;
+            const newPrice = item.price + 2000;
+            const newBid = { name: isLoggedIn ? currentUser.name : 'Фермер', amount: newPrice, time: 'Только что' };
             if (!item.bids) item.bids = [];
-            item.bids.unshift({ name: 'Уступка продавца', amount: item.startPrice, time: 'Только что' });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
-            showListingDetails(item.id);
+            item.bids.unshift(newBid);
+
+            database.ref(`listings/${fbKey}`).update({ price: newPrice, bids: item.bids }).then(() => {
+                showListingDetails(fbKey);
+            });
         }
 
-        function raiseStartingPrice(id) {
-            const item = listings.find(l => l.id === id); if (!item) return;
-            const oldStart = item.startPrice || item.price;
-            if (item.price === oldStart) item.price += 5000;
-            item.startPrice = oldStart + 5000;
-            if (!item.bids) item.bids = [];
-            item.bids.unshift({ name: 'Повышение продавца', amount: item.startPrice, time: 'Только что' });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
-            showListingDetails(item.id);
-        }
-
-        function openOfferModal(id) {
-            const item = listings.find(l => l.id === id); if (!item) return;
-            const modal = document.getElementById('offer-price-modal');
-            if (modal) modal.classList.remove('hidden');
+        function openOfferModal(fbKey) {
+            const item = listings.find(l => l.fbKey === fbKey); if (!item) return;
+            const modal = document.getElementById('offer-price-modal'); if (modal) modal.classList.remove('hidden');
             document.getElementById('offer-custom-amount').value = Math.round(item.price * 0.95);
             document.getElementById('submit-offer-btn').onclick = function() { submitOfferAmount(item); };
         }
 
         function closeOfferModal() { document.getElementById('offer-price-modal').classList.add('hidden'); }
 
-        // --- STREAMING_CHUNK: Processing active negotiate dialog sequence ... ---
         function submitOfferAmount(item) {
-            const amount = parseFloat(document.getElementById('offer-custom-amount').value);
-            if (!amount || amount <= 0) return;
+            const amount = parseFloat(document.getElementById('offer-custom-amount').value); if (!amount || amount <= 0) return;
             closeOfferModal(); closeDetailsModal();
-            triggerTelegramChat(item.author, item.title, formatPrice(amount), item.phone);
-            
+            triggerTelegramChat(item.author, item.title, formatPrice(amount), item.phone, item.fbKey);
             const box = document.getElementById('chat-messages-box');
-            if (box) {
-                box.innerHTML += `
-                    <div class="flex items-start gap-2 max-w-[85%] self-end flex-row-reverse ml-auto">
-                        <div class="bg-emerald-600 text-white rounded-2xl p-2.5 text-[11px]">
-                            Салам алейкум! Предлагаю забрать "${item.title}" за <b>${formatPrice(amount)} сом</b> прямо сейчас!
-                        </div>
-                    </div>
-                `;
-                box.scrollTop = box.scrollHeight;
-            }
+            if (box) { box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%] self-end flex-row-reverse ml-auto"><div class="bg-emerald-600 text-white rounded-2xl p-2.5 text-[11px]">Предлагаю ${formatPrice(amount)} сом!</div></div>`; box.scrollTop = box.scrollHeight; }
         }
 
-        // --- КОЛЛАПС ШАПКИ ПРИ СКРОЛЛЕ (МОБИЛЬНАЯ ВЕРСИЯ СЛЕЖЕНИЯ НАПРАВЛЕНИЯ) ---
-        let lastScrollTop = 0;
         function setupHeaderScrollCollapsing() {
-            const scrollContainer = document.getElementById('main-scroll-container');
-            const brandHeader = document.getElementById('brand-header');
-            const geoFilters = document.getElementById('geo-filters');
-            const advFilterBtn = document.getElementById('adv-filter-btn');
-            
+            const scrollContainer = document.getElementById('main-scroll-container'); const brandHeader = document.getElementById('brand-header'); const geoFilters = document.getElementById('geo-filters'); const advFilter = document.getElementById('adv-filter-btn');
             if (!scrollContainer) return;
-
+            let lastScrollTop = 0;
             scrollContainer.addEventListener('scroll', function() {
-                if (currentTab !== 'feed' && currentTab !== 'auctions') return; 
-                
-                let scrollTop = scrollContainer.scrollTop;
-                
-                // Если пользователь скроллит вниз (свайпает вверх) и ушел ниже 40 пикселей
-                if (scrollTop > lastScrollTop && scrollTop > 40) {
-                    if (brandHeader) {
-                        brandHeader.style.maxHeight = '0px';
-                        brandHeader.style.opacity = '0';
-                        brandHeader.style.marginBottom = '0px';
-                    }
-                    if (geoFilters) {
-                        geoFilters.style.maxHeight = '0px';
-                        geoFilters.style.opacity = '0';
-                        geoFilters.style.padding = '0px';
-                        geoFilters.style.borderWidth = '0px';
-                        geoFilters.style.marginBottom = '0px';
-                        geoFilters.style.marginTop = '0px';
-                    }
-                    if (advFilterBtn) {
-                        advFilterBtn.style.maxHeight = '0px';
-                        advFilterBtn.style.opacity = '0';
-                        advFilterBtn.style.paddingTop = '0px';
-                        advFilterBtn.style.paddingBottom = '0px';
-                        advFilterBtn.style.borderWidth = '0px';
-                        advFilterBtn.style.marginBottom = '0px';
-                        advFilterBtn.style.marginTop = '0px';
-                    }
-                } else if (scrollTop < lastScrollTop || scrollTop <= 10) {
-                    // Если пользователь скроллит вверх (свайпает вниз) или у самого верха
-                    if (brandHeader) {
-                        brandHeader.style.maxHeight = '44px';
-                        brandHeader.style.opacity = '1';
-                        brandHeader.style.marginBottom = '12px';
-                    }
-                    if (geoFilters) {
-                        geoFilters.style.maxHeight = '80px';
-                        geoFilters.style.opacity = '1';
-                        geoFilters.style.padding = '12px'; 
-                        geoFilters.style.borderWidth = '1px';
-                        geoFilters.style.marginBottom = '8px';
-                        geoFilters.style.marginTop = '0px';
-                    }
-                    if (advFilterBtn) {
-                        advFilterBtn.style.maxHeight = '32px';
-                        advFilterBtn.style.opacity = '1';
-                        advFilterBtn.style.paddingTop = '6px';
-                        advFilterBtn.style.paddingBottom = '6px';
-                        advFilterBtn.style.borderWidth = '1px';
-                        advFilterBtn.style.marginBottom = '8px';
-                        advFilterBtn.style.marginTop = '0px';
-                    }
+                if (currentTab !== 'feed' && currentTab !== 'auctions') return;
+                let st = scrollContainer.scrollTop;
+                if (st > lastScrollTop && st > 15) {
+                    if (brandHeader) { brandHeader.style.maxHeight = '0px'; brandHeader.style.opacity = '0'; brandHeader.style.marginBottom = '0px'; }
+                    if (geoFilters) geoFilters.classList.add('collapsed');
+                    if (advFilter) advFilter.classList.add('collapsed');
+                } else if (st < lastScrollTop) {
+                    if (brandHeader) { brandHeader.style.maxHeight = '44px'; brandHeader.style.opacity = '1'; brandHeader.style.marginBottom = '12px'; }
+                    if (geoFilters) geoFilters.classList.remove('collapsed');
+                    if (advFilter) advFilter.classList.remove('collapsed');
                 }
-                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // Защита от оверскролла на iOS
+                lastScrollTop = st <= 0 ? 0 : st;
             });
         }
 
-        // --- ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И НАВИГАЦИЯ ---
         function switchTab(tab) {
-            if (tab === 'feed' && currentTab === 'feed') { resetFilters(); return; }
-            currentTab = tab;
+            if (tab === 'feed' && currentTab === 'feed') { resetFilters(); return; } currentTab = tab;
+            document.querySelectorAll('nav button, header button').forEach(btn => btn.classList.remove('text-emerald-600', 'bg-emerald-50', 'font-bold'));
+            const mNav = document.getElementById(`nav-${tab}`); const dkNav = document.getElementById(`dk-nav-${tab}`);
+            if (mNav) mNav.classList.add('text-emerald-600', 'font-bold'); if (dkNav) dkNav.classList.add('text-emerald-600', 'bg-emerald-50');
 
-            document.querySelectorAll('nav button, header button').forEach(btn => {
-                btn.classList.remove('text-emerald-600', 'bg-emerald-50', 'font-bold');
-            });
+            const mFilters = document.getElementById('geo-filters'); const mSearch = document.getElementById('search-container'); const mLogo = document.getElementById('brand-header'); const mAdv = document.getElementById('adv-filter-btn');
+            const pcSidebar = document.getElementById('pc-sidebar');
 
-            const mNav = document.getElementById(`nav-${tab}`);
-            const dkNav = document.getElementById(`dk-nav-${tab}`);
-            if (mNav) mNav.classList.add('text-emerald-600', 'font-bold');
-            if (dkNav) dkNav.classList.add('text-emerald-600', 'bg-emerald-50');
+            if (pcSidebar) pcSidebar.classList.toggle('hidden', tab === 'profile' || tab === 'categories');
 
-            const mFilters = document.getElementById('geo-filters');
-            const mSearch = document.getElementById('search-container');
-            const mLogo = document.getElementById('brand-header');
-            const categoriesSection = document.getElementById('categories-section');
-            const listingsFeed = document.getElementById('listings-feed');
-            const profileContainer = document.getElementById('profile-container');
-            const categoriesContainer = document.getElementById('categories-container');
-            const feedTitle = document.getElementById('feed-title');
-            const advFilterBtn = document.getElementById('adv-filter-btn');
-
-            // Скрываем всё по умолчанию
-            if (categoriesSection) categoriesSection.classList.add('hidden');
-            if (listingsFeed) listingsFeed.classList.add('hidden');
-            if (profileContainer) profileContainer.classList.add('hidden');
-            if (categoriesContainer) categoriesContainer.classList.add('hidden');
-            if (mFilters) mFilters.classList.add('hidden');
-            if (mSearch) mSearch.classList.add('hidden');
-            if (advFilterBtn) advFilterBtn.classList.add('hidden');
-
-            if (tab === 'feed' || tab === 'auctions') {
-                if (mFilters) mFilters.classList.remove('hidden');
-                if (mSearch) mSearch.classList.remove('hidden');
-                if (advFilterBtn) advFilterBtn.classList.remove('hidden');
-                if (categoriesSection) categoriesSection.classList.remove('hidden');
-                if (listingsFeed) listingsFeed.classList.remove('hidden');
-                if (feedTitle) feedTitle.innerText = tab === 'auctions' ? "Онлайн-Аукционы" : "Объявления рынка";
+            if (tab === 'feed' || tab === 'auctions' || tab === 'my-listings') {
+                if (mFilters) mFilters.classList.toggle('hidden', tab === 'my-listings');
+                if (mSearch) mSearch.classList.toggle('hidden', tab === 'my-listings');
+                if (mAdv) mAdv.classList.toggle('hidden', tab === 'my-listings');
+                if (mLogo) { mLogo.style.maxHeight = '44px'; mLogo.style.opacity = '1'; mLogo.style.marginBottom = '12px'; }
+                document.getElementById('categories-section').classList.toggle('hidden', tab === 'my-listings');
+                document.getElementById('listings-feed').classList.remove('hidden');
+                document.getElementById('profile-container').classList.add('hidden');
+                document.getElementById('categories-container').classList.add('hidden');
+                document.getElementById('feed-title').innerText = tab === 'auctions' ? "Онлайн-Аукционы" : (tab === 'my-listings' ? "Мои объявления" : "Объявления рынка");
                 renderListings();
-            } else if (tab === 'my-listings') {
-                if (listingsFeed) listingsFeed.classList.remove('hidden');
-                if (feedTitle) feedTitle.innerText = "Мои объявления";
-                renderListings();
-            } else if (tab === 'categories') {
-                if (categoriesContainer) categoriesContainer.classList.remove('hidden');
-                if (feedTitle) feedTitle.innerText = "Каталог категорий";
-                renderCategoriesTab();
-            } else if (tab === 'profile') {
-                if (profileContainer) profileContainer.classList.remove('hidden');
-                if (feedTitle) feedTitle.innerText = "Профиль";
-                updateProfileView();
+            } else {
+                if (mFilters) mFilters.classList.add('hidden'); if (mSearch) mSearch.classList.add('hidden'); if (mAdv) mAdv.classList.add('hidden');
+                if (mLogo) { mLogo.style.maxHeight = '44px'; mLogo.style.opacity = '1'; mLogo.style.marginBottom = '0px'; }
+                document.getElementById('categories-section').classList.add('hidden');
+                document.getElementById('listings-feed').classList.add('hidden'); document.getElementById('empty-state').classList.add('hidden');
+
+                if (tab === 'categories') {
+                    document.getElementById('categories-container').classList.remove('hidden'); document.getElementById('profile-container').classList.add('hidden');
+                    document.getElementById('feed-title').innerText = "Каталог категорий"; renderCategoriesTab();
+                } else if (tab === 'profile') {
+                    document.getElementById('profile-container').classList.remove('hidden'); document.getElementById('categories-container').classList.add('hidden');
+                    document.getElementById('feed-title').innerText = "Кабинет фермера"; updateProfileView();
+                }
             }
-            
             document.getElementById('main-scroll-container').scrollTop = 0;
         }
 
-        // --- STREAMING_CHUNK: Processing categories layout configurations ... ---
         function renderCategoriesTab() {
-            const grid = document.getElementById('categories-tab-grid'); if (!grid) return;
-            grid.innerHTML = '';
+            const grid = document.getElementById('categories-tab-grid'); if (!grid) return; grid.innerHTML = '';
             const cats = [
                 { id: 'cows', label: 'Коровы / КРС', emoji: '🐂', col: 'from-amber-50 to-orange-50' },
                 { id: 'sheep', label: 'Бараны / МРС', emoji: '🐑', col: 'from-slate-50 to-neutral-100' },
@@ -1696,26 +1010,63 @@
             ];
             cats.forEach(c => {
                 const count = listings.filter(i => i.category === c.id).length;
-                const card = document.createElement('div');
-                card.className = `bg-gradient-to-br ${c.col} border border-slate-100 rounded-3xl p-4 flex flex-col justify-between h-28 cursor-pointer hover:shadow-sm transition-all`;
+                const card = document.createElement('div'); card.className = `bg-gradient-to-br ${c.col} border border-slate-100 rounded-3xl p-4 flex flex-col justify-between h-28 cursor-pointer hover:shadow-sm transition-all`;
                 card.onclick = () => { selectCategory(c.id); switchTab('feed'); };
                 card.innerHTML = `<div class="flex justify-between text-xl"><span>${c.emoji}</span><span class="text-[9px] bg-white px-2 py-0.5 rounded-full font-black text-slate-500">${count} лотов</span></div><div class="font-extrabold text-xs text-slate-800 mt-2">${c.label}</div>`;
                 grid.appendChild(card);
             });
         }
 
-        // --- ПОДАЧА ЛОТА И КЛИЕНТСКИЕ МЕТОДЫ ---
+        function openProfileEditModal() {
+            const modal = document.getElementById('profile-edit-modal'); if (!modal) return;
+            modal.classList.remove('hidden');
+            document.getElementById('edit-profile-name').value = currentUser.name;
+            document.getElementById('edit-profile-phone').value = currentUser.phone ? currentUser.phone.replace('+996 ', '').trim() : '';
+            document.getElementById('edit-profile-district').value = currentUser.district || 'Ошская обл.';
+            populateSettlements('edit-profile-district', 'edit-profile-settlement', currentUser.settlement || '', false);
+            document.getElementById('edit-profile-bio').value = currentUser.bio || '';
+            selectedAvatarBase64 = currentUser.avatar; updateAvatarFormUI();
+        }
+
+        function closeProfileEditModal() { document.getElementById('profile-edit-modal').classList.add('hidden'); }
+        function triggerAvatarUpload() { document.getElementById('form-avatar-input').click(); }
+
+        function handleAvatarSelection(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = function(e) {
+                const img = new Image(); img.onload = function() {
+                    const canvas = document.createElement('canvas'); canvas.width = 120; canvas.height = 120;
+                    const ctx = canvas.getContext('2d'); if (ctx) ctx.drawImage(img, 0, 0, 120, 120);
+                    selectedAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8); updateAvatarFormUI();
+                }; img.src = e.target.result;
+            }; reader.readAsDataURL(file);
+        }
+
+        function removeSelectedAvatar(event) { if (event) event.stopPropagation(); selectedAvatarBase64 = null; updateAvatarFormUI(); }
+
+        function updateAvatarFormUI() {
+            const triggerArea = document.getElementById('avatar-trigger-area'); const previewArea = document.getElementById('avatar-preview-area'); const previewImg = document.getElementById('avatar-preview-img');
+            if (selectedAvatarBase64) { triggerArea.classList.add('hidden'); previewArea.classList.remove('hidden'); previewImg.src = selectedAvatarBase64; }
+            else { triggerArea.classList.remove('hidden'); previewArea.classList.add('hidden'); previewImg.src = ''; }
+        }
+
+        function saveUserProfile() {
+            const name = document.getElementById('edit-profile-name').value.trim(); const phone = document.getElementById('edit-profile-phone').value.trim();
+            if (!name || !phone) { showAlert('Заполните обязательные поля.'); return; }
+            currentUser.name = name; currentUser.phone = '+996 ' + phone;
+            currentUser.district = document.getElementById('edit-profile-district').value; currentUser.settlement = document.getElementById('edit-profile-settlement').value;
+            currentUser.bio = document.getElementById('edit-profile-bio').value.trim(); currentUser.avatar = selectedAvatarBase64;
+            localStorage.setItem('agromarket_user_profile_data_v3_9', JSON.stringify(currentUser));
+            closeProfileEditModal(); updateProfileView(); renderListings(); showToastNotification('Профиль успешно изменен!');
+        }
+
         function openSellModal() {
             document.getElementById('add-listing-modal').classList.remove('hidden');
             document.getElementById('form-phone').value = isLoggedIn ? currentUser.phone.replace('+996 ', '').trim() : '555123456';
-            document.getElementById('form-district').value = currentUser.district || 'Ошская обл.';
-            populateSettlements('form-district', 'form-settlement', currentUser.settlement || '', false);
-            
-            document.getElementById('form-breed').value = '';
-            document.getElementById('form-gender').value = '-';
-            document.getElementById('form-age-months').value = '';
-            document.getElementById('form-weight').value = '';
-
+            document.getElementById('form-district').value = currentUser.district;
+            populateSettlements('form-district', 'form-settlement', currentUser.settlement, false);
+            document.getElementById('form-breed').value = ''; document.getElementById('form-gender').value = '-';
+            document.getElementById('form-age-months').value = ''; document.getElementById('form-weight').value = '';
             resetUploadFormUI();
         }
 
@@ -1724,142 +1075,52 @@
 
         function handleImageSelection(event) {
             const file = event.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 400; canvas.height = 300;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) ctx.drawImage(img, 0, 0, 400, 300);
+            const reader = new FileReader(); reader.onload = function(e) {
+                const img = new Image(); img.onload = function() {
+                    const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 300;
+                    const ctx = canvas.getContext('2d'); if (ctx) ctx.drawImage(img, 0, 0, 400, 300);
                     selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     document.getElementById('upload-trigger-area').classList.add('hidden');
                     document.getElementById('upload-preview-area').classList.remove('hidden');
                     document.getElementById('upload-preview-img').src = selectedImageBase64;
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+                }; img.src = e.target.result;
+            }; reader.readAsDataURL(file);
         }
 
-        function removeSelectedImage(event) {
-            if (event) event.stopPropagation();
-            resetUploadFormUI();
-        }
-
+        function removeSelectedImage() { resetUploadFormUI(); }
         function resetUploadFormUI() {
             selectedImageBase64 = null; document.getElementById('form-image-input').value = '';
-            document.getElementById('upload-trigger-area').classList.remove('hidden');
-            document.getElementById('upload-preview-area').classList.add('hidden');
+            document.getElementById('upload-trigger-area').classList.remove('hidden'); document.getElementById('upload-preview-area').classList.add('hidden');
         }
 
-        function saveNewListing() {
-            const title = document.getElementById('form-title').value.trim();
-            const price = parseFloat(document.getElementById('form-price').value);
-            const desc = document.getElementById('form-desc').value.trim();
-            const phone = document.getElementById('form-phone').value.trim();
-
-            const breed = document.getElementById('form-breed').value.trim();
-            const gender = document.getElementById('form-gender').value;
-            const ageMonths = parseInt(document.getElementById('form-age-months').value);
-            const weight = parseFloat(document.getElementById('form-weight').value);
-
-            if (!title || !price || !desc || !phone) { showAlert('Пожалуйста, заполните форму полностью.'); return; }
-
-            const newAd = {
-                id: Date.now(), 
-                title, 
-                category: document.getElementById('form-category').value,
-                breed: breed || 'Местная',
-                gender: gender !== '-' ? gender : '-',
-                ageMonths: !isNaN(ageMonths) ? ageMonths : null,
-                weight: !isNaN(weight) ? weight : null,
-                desc, 
-                price, 
-                startPrice: price, 
-                unit: document.getElementById('form-unit').value,
-                district: document.getElementById('form-district').value, 
-                settlement: document.getElementById('form-settlement').value,
-                phone: '+996 ' + phone, 
-                author: isLoggedIn ? currentUser.name : 'Арсен (Вы)', 
-                isMyListing: true,
-                isAuction: document.getElementById('form-is-auction').checked, 
-                bids: [], 
-                views: 1, 
-                emoji: '🐂', 
-                date: 'Только что', 
-                image: selectedImageBase64
-            };
-
-            listings.unshift(newAd); localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
-            closeModal(); updateMyListingsBadge(); switchTab('feed');
-            showToastNotification('Лот успешно размещен на рынке!');
-        }
-
-        // --- STREAMING_CHUNK: Updating badge values on elements dynamically ... ---
         function updateMyListingsBadge() {
-            const count = listings.filter(i => i.isMyListing).length;
-            const badge = document.getElementById('badge-my-listings');
-            const dkBadge = document.getElementById('dk-badge-my-listings');
-            const profileBadge = document.getElementById('profile-badge-my-listings');
-            
-            if (badge) { badge.innerText = count; badge.classList.toggle('hidden', count === 0); }
-            if (dkBadge) { dkBadge.innerText = count; dkBadge.classList.toggle('hidden', count === 0); }
-            if (profileBadge) { profileBadge.innerText = count; profileBadge.classList.toggle('hidden', count === 0); }
+            const myListingIds = JSON.parse(localStorage.getItem('my_listing_ids') || '[]');
+            const count = listings.filter(i => myListingIds.includes(i.id)).length;
+            const num = document.getElementById('user-listings-count-num'); if (num) num.innerText = count;
         }
 
-        // --- УТИЛИТЫ И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
         function selectCategory(cat) {
-            selectedCategory = cat;
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('border-emerald-500', 'bg-emerald-50/50', 'text-emerald-600', 'scale-105');
-            });
+            selectedCategory = cat; document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('border-emerald-500', 'bg-emerald-50/50', 'text-emerald-600', 'scale-105'));
             if (cat !== 'all') {
-                const active = document.getElementById(`cat-${cat}`);
-                if (active) active.classList.add('border-emerald-500', 'bg-emerald-50/50', 'text-emerald-600', 'scale-105');
+                const active = document.getElementById(`cat-${cat}`); if (active) active.classList.add('border-emerald-500', 'bg-emerald-50/50', 'text-emerald-600', 'scale-105');
                 document.getElementById('category-clear-btn').style.display = 'block';
-            } else {
-                document.getElementById('category-clear-btn').style.display = 'none';
-            }
+            } else { document.getElementById('category-clear-btn').style.display = 'none'; }
             updateFilterChips(); renderListings();
         }
 
-        function clearSearch() {
-            document.getElementById('search-bar').value = '';
-            document.getElementById('desktop-search-bar').value = '';
-            searchQuery = '';
-            document.getElementById('clear-search').classList.add('hidden');
-            renderListings();
-        }
+        function clearSearch() { document.getElementById('search-bar').value = ''; document.getElementById('desktop-search-bar').value = ''; searchQuery = ''; document.getElementById('clear-search').classList.add('hidden'); renderListings(); }
 
         function resetFilters() {
-            document.getElementById('district-filter').value = 'all';
-            document.getElementById('pc-district-filter').value = 'all';
-            
-            document.getElementById('pc-breed-filter').value = 'all';
-            document.getElementById('pc-gender-filter').value = 'all';
-            document.getElementById('pc-age-filter').value = 'all';
-            document.getElementById('pc-weight-min').value = '';
-            document.getElementById('pc-weight-max').value = '';
-
-            document.getElementById('breed-filter').value = 'all';
-            document.getElementById('gender-filter').value = 'all';
-            document.getElementById('age-filter').value = 'all';
-            document.getElementById('weight-min').value = '';
-            document.getElementById('weight-max').value = '';
-
-            populateSettlements('district-filter', 'settlement-filter', 'all', true);
-            populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
-            selectedDistrict = 'all'; selectedSettlement = 'all';
-            selectCategory('all'); clearSearch();
+            document.getElementById('district-filter').value = 'all'; document.getElementById('pc-district-filter').value = 'all';
+            document.getElementById('pc-breed-filter').value = 'all'; document.getElementById('pc-gender-filter').value = 'all'; document.getElementById('pc-age-filter').value = 'all'; document.getElementById('pc-weight-min').value = ''; document.getElementById('pc-weight-max').value = '';
+            document.getElementById('breed-filter').value = 'all'; document.getElementById('gender-filter').value = 'all'; document.getElementById('age-filter').value = 'all'; document.getElementById('weight-min').value = ''; document.getElementById('weight-max').value = '';
+            populateSettlements('district-filter', 'settlement-filter', 'all', true); populateSettlements('pc-district-filter', 'pc-settlement-filter', 'all', true);
+            selectedDistrict = 'all'; selectedSettlement = 'all'; selectCategory('all'); clearSearch();
         }
 
         function updateFilterChips() {
-            const container = document.getElementById('filter-chips-container');
-            const list = document.getElementById('chips-list');
-            if (!container || !list) return;
+            const container = document.getElementById('filter-chips-container'); const list = document.getElementById('chips-list'); if (!container || !list) return;
             list.innerHTML = ''; let active = false;
-
             if (selectedCategory !== 'all') { addChip('Категория', () => selectCategory('all')); active = true; }
             if (selectedDistrict !== 'all') { addChip(selectedDistrict.replace(' обл.',''), () => { document.getElementById('district-filter').value='all'; onRegionFilterChange('district-filter','settlement-filter'); }); active = true; }
             if (selectedSettlement !== 'all') { addChip(selectedSettlement, () => { document.getElementById('settlement-filter').value='all'; filterListings(); }); active = true; }
@@ -1867,55 +1128,30 @@
         }
 
         function addChip(txt, onRemove) {
-            const chip = document.createElement('div');
-            chip.className = "bg-emerald-100 text-emerald-800 text-[9px] font-bold py-0.5 px-2 rounded-full flex items-center gap-1 cursor-pointer";
-            chip.innerHTML = `<span>${txt}</span><i class="fa-solid fa-circle-xmark opacity-60"></i>`;
-            chip.onclick = onRemove; document.getElementById('chips-list').appendChild(chip);
+            const chip = document.createElement('div'); chip.className = "bg-emerald-100 text-emerald-800 text-[9px] font-bold py-0.5 px-2 rounded-full flex items-center gap-1 cursor-pointer";
+            chip.innerHTML = `<span>${txt}</span><i class="fa-solid fa-circle-xmark opacity-60"></i>`; chip.onclick = onRemove; document.getElementById('chips-list').appendChild(chip);
         }
 
         function filterListings() {
-            const mSet = document.getElementById('settlement-filter');
-            const pcSet = document.getElementById('pc-settlement-filter');
-            if (document.activeElement === mSet && pcSet) pcSet.value = mSet.value;
-            if (document.activeElement === pcSet && mSet) mSet.value = pcSet.value;
-
-            selectedDistrict = document.getElementById('district-filter').value;
-            selectedSettlement = document.getElementById('settlement-filter').value;
+            const mSet = document.getElementById('settlement-filter'); const pcSet = document.getElementById('pc-settlement-filter');
+            if (document.activeElement === mSet && pcSet) pcSet.value = mSet.value; if (document.activeElement === pcSet && mSet) mSet.value = pcSet.value;
+            selectedDistrict = document.getElementById('district-filter').value; selectedSettlement = document.getElementById('settlement-filter').value;
             updateFilterChips(); renderListings();
         }
 
-        function triggerCall(phone, author) {
-            const clean = phone.replace(/[^+\d]/g, '');
-            showToastNotification(`Звонок фермеру ${author}...`);
-            setTimeout(() => { window.location.href = 'tel:' + clean; }, 350);
-        }
+        function triggerCall(phone, author) { const clean = phone.replace(/[^+\d]/g, ''); showToastNotification(`Звонок фермеру ${author}...`); setTimeout(() => { window.location.href = 'tel:' + clean; }, 350); }
 
-        function triggerTelegramChat(author, title, price, phone) {
-            const box = document.getElementById('chat-messages-box');
-            if (!box) return;
-            document.getElementById('chat-sim-name').innerText = author;
-            document.getElementById('chat-sim-avatar').innerText = author.substring(0,1).toUpperCase();
-            document.getElementById('chat-sim-phone-btn').onclick = () => triggerCall(phone, author);
-            
-            box.innerHTML = `
-                <div class="flex items-start gap-2 max-w-[85%]">
-                    <div class="bg-white rounded-2xl p-2.5 text-[11px] border shadow-xs">
-                        <b>Система:</b> Переписка по поводу лота "${title}" за ${price} сом.
-                    </div>
-                </div>
-            `;
+        function triggerTelegramChat(author, title, price, phone, fbKey) {
+            const box = document.getElementById('chat-messages-box'); if (!box) return; document.getElementById('chat-sim-name').innerText = author;
+            document.getElementById('chat-sim-avatar').innerText = author.substring(0,1).toUpperCase(); document.getElementById('chat-sim-phone-btn').onclick = () => triggerCall(phone, author);
+            box.innerHTML = `<div class="flex items-start gap-2 max-w-[85%]"><div class="bg-white rounded-2xl p-2.5 text-[11px] border shadow-xs"><b>Система:</b> Переписка по поводу лота "${title}" за ${price} сом.</div></div>`;
             document.getElementById('telegram-chat-simulator').classList.remove('hidden');
         }
 
         function sendChatMessage() {
-            const f = document.getElementById('chat-input-field'); const val = f.value.trim(); if (!val) return;
-            const box = document.getElementById('chat-messages-box');
-            box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%] self-end flex-row-reverse ml-auto"><div class="bg-emerald-600 text-white rounded-2xl p-2.5 text-[11px]">${val}</div></div>`;
-            f.value = ''; box.scrollTop = box.scrollHeight;
-            setTimeout(() => {
-                box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%]"><div class="bg-white border rounded-2xl p-2.5 text-[11px]">Салам! Да, лот актуален. Скот чистый, здоровый, можете приехать посмотреть. По цене немного уступлю.</div></div>`;
-                box.scrollTop = box.scrollHeight;
-            }, 1000);
+            const f = document.getElementById('chat-input-field'); const val = f.value.trim(); if (!val) return; const box = document.getElementById('chat-messages-box');
+            box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%] self-end flex-row-reverse ml-auto"><div class="bg-emerald-600 text-white rounded-2xl p-2.5 text-[11px]">${val}</div></div>`; f.value = ''; box.scrollTop = box.scrollHeight;
+            setTimeout(() => { box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%]"><div class="bg-white border rounded-2xl p-2.5 text-[11px]">Салам! Да, лот актуален. Скот чистый, здоровый, можете приехать посмотреть. По цене немного уступлю.</div></div>`; box.scrollTop = box.scrollHeight; }, 1000);
         }
 
         function closeChatSim() { document.getElementById('telegram-chat-simulator').classList.add('hidden'); }
@@ -1929,14 +1165,10 @@
         function closeConfirm(yes) { document.getElementById('custom-confirm').classList.add('hidden'); if(yes && pendingConfirmAction) pendingConfirmAction(); pendingConfirmAction = null; }
         function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\n))/g, " "); }
 
-        // --- STREAMING_CHUNK: Building custom alert toaster layout components ... ---
-        function showToastNotification(txt) {
-            const toast = document.createElement('div');
-            toast.className = "fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-4 py-2.5 rounded-2xl shadow-xl z-55 border border-slate-800";
-            toast.onclick = () => { toast.remove(); };
-            toast.innerHTML = `✅ ${txt}`; document.body.appendChild(toast);
-            setTimeout(() => { toast.remove(); }, 2200);
-        }
+        function triggerAuth() { isLoggedIn = true; localStorage.setItem('agromarket_logged_in_state_v3_9', 'true'); updateProfileView(); }
+        function triggerLogout() { isLoggedIn = false; localStorage.setItem('agromarket_logged_in_state_v3_9', 'false'); updateProfileView(); }
+        function updateProfileView() { const auth = document.getElementById('profile-auth-wall'); const dash = document.getElementById('profile-dashboard'); if(auth && dash) { if(isLoggedIn) { auth.classList.add('hidden'); dash.classList.remove('hidden'); } else { auth.classList.remove('hidden'); dash.classList.add('hidden'); } } }
+        function showToastNotification(txt) { const toast = document.createElement('div'); toast.className = "fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-4 py-2.5 rounded-2xl shadow-xl z-55 border border-slate-800"; toast.onclick = () => { toast.remove(); }; toast.innerHTML = `✅ ${txt}`; document.body.appendChild(toast); setTimeout(() => { toast.remove(); }, 2200); }
     </script>
 </body>
 </html>
