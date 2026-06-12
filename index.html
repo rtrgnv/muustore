@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MUU | Платформа скота в Кыргызстане</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slide-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .upload-dashed {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.2s ease;
+        }
+        .upload-dashed:hover {
+            border-color: #059669;
+            background-color: #ecfdf5;
+        }
+        #brand-header {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .auth-spinner {
+            border: 3px solid rgba(0, 0, 0, 0.05);
+            border-top: 3px solid #059669;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Премиальная рамка Samsung Galaxy S25 Ultra для десктопа */
+        .samsung-s25-ultra-frame {
+            border: 10px solid #0f172a;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+            width: 406px;
+            height: 880px;
+            max-height: 96vh;
+        }
+
+        /* На мобильных устройствах рамка телефона исчезает, растягивая контент на весь экран */
+        @media (max-width: 450px) {
+            .samsung-s25-ultra-frame {
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+            }
+            body {
+                background-color: #f8fafc;
+                padding: 0 !important;
+            }
+            .mobile-padding-fix {
+                padding-top: 2.5rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4 overflow-hidden select-none">
+
+    <!-- Корпус устройства Samsung Galaxy S25 Ultra -->
+    <div class="samsung-s25-ultra-frame bg-slate-50 overflow-hidden flex flex-col relative border border-slate-200">
+        
+        <!-- Вырез фронтальной камеры Infinity-O (Скрыт на ПК, виден на мобильных) -->
+        <div class="absolute top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-black rounded-full z-50 shadow-inner flex items-center justify-center">
+            <div class="w-1.5 h-1.5 bg-[#0a0a0a] rounded-full opacity-40"></div>
+        </div>
+
+        <!-- Бело-зеленая шапка приложения (с отступом под камеру) -->
+        <header id="app-header" class="mobile-padding-fix bg-white text-slate-800 px-4 pt-10 pb-4 rounded-b-[2rem] shadow-sm border-b border-slate-100 sticky top-0 z-30">
+            <!-- Центрированный мобильный бренд-блок -->
+            <div id="brand-header" class="overflow-hidden h-11 opacity-100 mb-3" style="max-height: 44px;">
+                <div class="flex justify-center items-center text-center">
+                    <div class="flex flex-col items-center">
+                        <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2 text-slate-800 justify-center">
+                            <span class="bg-emerald-600 text-white px-3 py-0.5 rounded-lg text-sm shadow-sm font-black">MUU</span>
+                        </h1>
+                        <p class="text-[10px] text-emerald-600 mt-0.5 font-bold text-center">Бесплатная доска объявлений скота</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Двухуровневая геолокация -->
+            <div id="geo-filters" class="space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50 overflow-hidden" style="max-height: 80px;">
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="district-filter" onchange="onRegionFilterChange('district-filter', 'settlement-filter')" class="w-full bg-white border border-slate-200 text-slate-800 text-[11px] rounded-xl p-2 font-bold outline-none">
+                        <option value="all">🗺️ Все области</option>
+                        <option value="Баткенская обл.">Баткенская обл.</option>
+                        <option value="Джалал-Абадская обл.">Джалал-Абадская обл.</option>
+                        <option value="Иссык-Кульская обл.">Иссык-Кульская обл.</option>
+                        <option value="Нарынская обл.">Нарынская обл.</option>
+                        <option value="Ошская обл.">Ошская обл.</option>
+                        <option value="Таласская обл.">Таласская обл.</option>
+                        <option value="Чуйская обл.">Чуйская обл.</option>
+                    </select>
+                    <select id="settlement-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[11px] rounded-xl p-2 font-bold outline-none">
+                        <option value="all">🏡 Все места</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Доп фильтры для мобильных (сворачиваемые) -->
+            <button onclick="toggleMobileAdvancedFilters()" class="w-full mt-2 bg-slate-50 border border-slate-200 text-slate-600 text-[10px] py-1.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1">
+                <i class="fa-solid fa-sliders"></i> Дополнительные фильтры скота
+            </button>
+
+            <div id="mobile-advanced-filters" class="hidden mt-2 bg-emerald-50/20 p-3 rounded-2xl border border-emerald-100/35 space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Порода</label>
+                        <select id="breed-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none bg-white">
+                            <option value="all">Все породы</option>
+                            <option value="Черный Ангус">Черный Ангус</option>
+                            <option value="Швицкая">Швицкая</option>
+                            <option value="Алатауская">Алатауская</option>
+                            <option value="Гиссарская">Гиссарская</option>
+                            <option value="Новокиргизская">Новокиргизская</option>
+                            <option value="Местная">Местная</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Пол</label>
+                        <select id="gender-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none bg-white">
+                            <option value="all">Любой пол</option>
+                            <option value="самец">Самец</option>
+                            <option value="самка">Самка</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Возраст</label>
+                        <select id="age-filter" onchange="filterListings()" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-2 font-bold outline-none bg-white">
+                            <option value="all">Любой возраст</option>
+                            <option value="young">До 1 года</option>
+                            <option value="mid">1 - 2 года</option>
+                            <option value="adult">Старше 2 лет</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Вес (кг)</label>
+                        <div class="grid grid-cols-2 gap-1">
+                            <input type="number" id="weight-min" onkeyup="filterListings()" placeholder="От" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-1.5 font-bold outline-none">
+                            <input type="number" id="weight-max" onkeyup="filterListings()" placeholder="До" class="w-full bg-white border border-slate-200 text-slate-800 text-[10px] rounded-xl p-1.5 font-bold outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Строка поиска -->
+            <div id="search-container" class="relative mt-2.5">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </span>
+                <input type="text" id="search-bar" onkeyup="syncSearchInputs(this)" placeholder="Бычок, курдючные бараны, клевер сено..." 
+                       class="w-full bg-slate-100 focus:bg-white text-slate-800 placeholder-slate-400 rounded-xl py-2 pl-9 pr-9 text-xs font-semibold outline-none border border-slate-200 focus:border-emerald-500">
+                <button onclick="clearSearch()" id="clear-search" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 hidden">
+                    <i class="fa-solid fa-circle-xmark text-xs"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Главный контейнер содержимого со скроллом -->
+        <main class="flex-1 overflow-y-auto px-4 py-4 pb-28" id="main-scroll-container">
+
+            <!-- Категории товаров -->
+            <section id="categories-section" class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Категории фермерства</h2>
+                    <span class="text-[10px] text-emerald-600 font-bold" id="category-clear-btn" onclick="selectCategory('all')" style="display:none; cursor:pointer;">Сбросить</span>
+                </div>
+                <div class="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                    <button onclick="selectCategory('cows')" id="cat-cows" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
+                        <span class="text-xl">🐂</span>
+                        <span class="text-[10px] font-bold text-slate-600">Коровы</span>
+                    </button>
+                    <button onclick="selectCategory('sheep')" id="cat-sheep" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
+                        <span class="text-xl">🐑</span>
+                        <span class="text-[10px] font-bold text-slate-600">Бараны</span>
+                    </button>
+                    <button onclick="selectCategory('horses')" id="cat-horses" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
+                        <span class="text-xl">🐎</span>
+                        <span class="text-[10px] font-bold text-slate-600">Лошади</span>
+                    </button>
+                    <button onclick="selectCategory('feed')" id="cat-feed" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
+                        <span class="text-xl">🌾</span>
+                        <span class="text-[10px] font-bold text-slate-600">Корма</span>
+                    </button>
+                    <button onclick="selectCategory('tech')" id="cat-tech" class="category-btn flex-shrink-0 flex flex-col items-center justify-between w-[70px] h-[74px] bg-white rounded-2xl p-2 border border-slate-100 hover:border-emerald-300 shadow-xs transition-all">
+                        <span class="text-xl">🚜</span>
+                        <span class="text-[10px] font-bold text-slate-600">Техника</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Активные фильтры (Плашки) -->
+            <div id="filter-chips-container" class="mb-3 flex flex-wrap gap-1.5 items-center hidden">
+                <span class="text-[9px] text-slate-400 font-bold uppercase">Фильтры:</span>
+                <div id="chips-list" class="flex flex-wrap gap-1"></div>
+            </div>
+
+            <!-- Заголовок Ленты рынка -->
+            <div class="flex justify-between items-center mb-2.5">
+                <h2 id="feed-title" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Объявления рынка</h2>
+                <span class="text-[10px] text-slate-500 font-bold" id="listings-count">Показано: 0</span>
+            </div>
+
+            <!-- Лента объявлений -->
+            <div id="listings-feed" class="space-y-3">
+                <!-- Заполняется динамически через JS -->
+            </div>
+
+            <!-- Пустое состояние (Ничего не найдено) -->
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-10 px-4 text-center">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-2xl">🔍</div>
+                <h3 class="text-slate-700 font-bold text-sm mb-1">Ничего не найдено</h3>
+                <p class="text-slate-400 text-[10px] max-w-[200px]">Попробуйте сбросить поисковый запрос или настроить локацию заново.</p>
+                <button onclick="resetFilters()" class="mt-3 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold transition-all">Сбросить фильтры</button>
+            </div>
+
+            <!-- Каталог Категорий (Плитки) -->
+            <div id="categories-container" class="hidden space-y-4 py-1 animate-slide-up">
+                <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-4 rounded-3xl shadow-md relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 translate-x-3 translate-y-3 text-white/10 text-7xl font-bold">🌿</div>
+                    <h3 class="font-extrabold text-xs mb-1">Каталог muu.kg</h3>
+                    <p class="text-[9.5px] text-emerald-100 leading-normal font-medium">Выберите интересующее вас направление для быстрого перехода к торгам.</p>
+                </div>
+                <div id="categories-tab-grid" class="grid grid-cols-2 gap-3">
+                    <!-- Заполняется программно -->
+                </div>
+            </div>
+
+            <!-- Личный Кабинет фермера -->
+            <div id="profile-container" class="hidden space-y-4 py-1">
+                <!-- Окно авторизации -->
+                <div id="profile-auth-wall" class="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs space-y-4 text-center animate-slide-up">
+                    <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-xs">👨‍🌾</div>
+                    <div>
+                        <h3 class="text-slate-800 font-extrabold text-xs">Добро пожаловать</h3>
+                        <p class="text-[10px] text-slate-400 leading-relaxed mt-1">Войдите в профиль, чтобы бесплатно выкладывать объявления и запускать аукционы.</p>
+                    </div>
+
+                    <div class="space-y-2 pt-2">
+                        <button onclick="triggerAuth('telegram')" class="w-full bg-[#24A1DE] hover:bg-[#1f8fc5] text-white font-bold text-[11px] py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
+                            <i class="fa-brands fa-telegram text-sm"></i> Войти через Telegram
+                        </button>
+                        <button onclick="triggerAuth('google')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-[11px] py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.34 0-6.05-2.71-6.05-6.05s2.71-6.05 6.05-6.05c1.493 0 2.86.542 3.922 1.438l3.11-3.11C18.912 2.68 15.776 1.5 12.24 1.5c-5.799 0-10.5 4.701-10.5 10.5s4.701 10.5 10.5 10.5c5.385 0 9.878-3.9 10.435-9h-10.435z"/></svg>
+                            Войти через Google
+                        </button>
+                    </div>
+
+                    <div id="auth-loading-overlay" class="hidden flex flex-col items-center justify-center space-y-2 py-4">
+                        <div class="auth-spinner"></div>
+                        <span class="text-[10px] text-emerald-600 font-extrabold animate-pulse">Безопасное подключение...</span>
+                    </div>
+                </div>
+
+                <!-- Главная панель фермера -->
+                <div id="profile-dashboard" class="hidden space-y-4">
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-4 rounded-3xl shadow-md relative overflow-hidden border border-slate-700">
+                        <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 text-slate-700 opacity-20 text-8xl">👨‍🌾</div>
+                        <div class="relative z-10 flex items-center gap-3">
+                            <div id="dashboard-avatar-container" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-extrabold shadow-sm overflow-hidden bg-gradient-to-tr from-emerald-400 to-green-500">А</div>
+                            <div>
+                                <h3 id="dashboard-name" class="font-extrabold text-sm flex items-center gap-1.5">Арсен (Вы)</h3>
+                                <p id="dashboard-sub" class="text-[10px] text-slate-300">Фермер из Кыргызстана • ID: 74829</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mt-4 border-t border-slate-700/80 pt-3 text-center">
+                            <div>
+                                <span class="block text-base font-bold text-emerald-400" id="user-listings-count-num">1</span>
+                                <span class="text-[9px] text-slate-400">Моих лотов</span>
+                            </div>
+                            <div>
+                                <span class="block text-base font-bold text-emerald-400">14</span>
+                                <span class="text-[9px] text-slate-400">Просмотров</span>
+                            </div>
+                            <div>
+                                <span class="block text-base font-bold text-blue-400">⭐️ 4.9</span>
+                                <span class="text-[9px] text-slate-400">Рейтинг</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Настройки -->
+                    <div class="bg-white rounded-3xl p-3 shadow-xs border border-slate-100 space-y-0.5">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1.5">Настройки аккаунта</h4>
+                        <button onclick="openProfileEditModal()" class="w-full flex justify-between items-center p-2.5 hover:bg-slate-50 rounded-2xl transition-all group text-left">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-user-gear"></i></span>
+                                <span class="text-xs font-bold text-slate-700">Редактировать профиль</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-[10px]"></i>
+                        </button>
+                        <button onclick="triggerLogout()" class="w-full flex justify-between items-center p-2.5 hover:bg-rose-50/50 rounded-2xl transition-all group text-left">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                                <span class="text-xs font-bold text-slate-700">Выйти из аккаунта</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-[10px]"></i>
+                        </button>
+                        <button onclick="triggerResetApp()" class="w-full flex justify-between items-center p-2.5 hover:bg-red-50/40 rounded-2xl transition-all group text-left">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-xs"><i class="fa-solid fa-rotate-right"></i></span>
+                                <span class="text-xs font-bold text-slate-700">Сбросить все демо-данные</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:translate-x-1 transition-all text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Поддержка -->
+                <div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100 rounded-3xl p-4 mt-3 relative overflow-hidden">
+                    <h4 class="font-extrabold text-emerald-900 text-xs mb-1">Нужна помощь с объявлением?</h4>
+                    <p class="text-[10px] text-emerald-700/80 mb-3 leading-normal">Наш диспетчер бесплатно поможет заполнить данные, установить цену и сделать описание.</p>
+                    <button onclick="mockChatSupport()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] py-2 px-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-telegram"></i> Написать диспетчеру muu.kg
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Мобильное нижнее меню навигации -->
+        <nav class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around py-2 px-2 text-slate-400 z-30 select-none">
+            <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center gap-0.5 w-14 text-emerald-600 transition-all font-bold">
+                <span class="text-lg leading-none"><i class="fa-solid fa-store"></i></span>
+                <span class="text-[9px]">Рынок</span>
+            </button>
+            <button onclick="switchTab('auctions')" id="nav-auctions" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
+                <span class="text-lg leading-none"><i class="fa-solid fa-gavel"></i></span>
+                <span class="text-[9px]">Аукционы</span>
+            </button>
+            <button onclick="openSellModal()" class="flex flex-col items-center -mt-5 gap-0.5 group">
+                <div class="w-11 h-11 bg-gradient-to-tr from-emerald-600 to-green-600 text-white rounded-full flex items-center justify-center shadow-md transform group-hover:scale-105 active:scale-95 transition-all">
+                    <i class="fa-solid fa-plus text-lg"></i>
+                </div>
+                <span class="text-[9px] text-slate-700 font-bold mt-0.5">Подать</span>
+            </button>
+            <button onclick="switchTab('my-listings')" id="nav-my-listings" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
+                <span class="text-lg leading-none relative">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span id="badge-my-listings" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[7px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center border border-white hidden">0</span>
+                </span>
+                <span class="text-[9px]">Мои лоты</span>
+            </button>
+            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 w-14 hover:text-slate-700 transition-all">
+                <span class="text-lg leading-none"><i class="fa-solid fa-user"></i></span>
+                <span class="text-[9px]">Кабинет</span>
+            </button>
+        </nav>
+
+        <!-- --- МОДАЛЬНЫЕ ОКНА --- -->
+
+        <!-- Модалка подачи нового объявления -->
+        <div id="add-listing-modal" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 flex items-end transition-all">
+            <div class="bg-white w-full rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col animate-slide-up">
+                <div class="flex justify-center py-2">
+                    <div class="w-10 h-1 bg-slate-200 rounded-full cursor-pointer" onclick="closeModal()"></div>
+                </div>
+                <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
+                    <h3 class="text-sm font-extrabold text-slate-800">Подать объявление</h3>
+                    <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar">
+                    <!-- Загрузка изображения -->
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Фотография скота</label>
+                        <input type="file" id="form-image-input" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
+                        <div id="upload-trigger-area" onclick="triggerImageUpload()" class="upload-dashed rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50">
+                            <span class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm mb-1.5 shadow-xs"><i class="fa-solid fa-camera"></i></span>
+                            <span class="text-xs font-bold text-slate-700">Нажмите, чтобы добавить фото</span>
+                        </div>
+                        <div id="upload-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-28 bg-slate-100">
+                            <img id="upload-preview-img" src="" class="w-full h-full object-cover">
+                            <button onclick="removeSelectedImage(event)" class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px]"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Что продаете?</label>
+                        <input type="text" id="form-title" placeholder="Бычок Швиц, Кочкор на разведение..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                    </div>
+
+                    <div class="bg-emerald-50/50 border border-emerald-100 p-2.5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-extrabold text-emerald-800 block">🔥 Выставить на Аукцион</span>
+                            <span class="text-[8px] text-slate-500 block">Покупатели будут повышать ставки за ваш лот</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="form-is-auction" class="sr-only peer" onchange="toggleAuctionFormFields()">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Доп поля скота -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Порода скота</label>
+                            <input type="text" id="form-breed" placeholder="Швицкая, Ангус..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Пол</label>
+                            <select id="form-gender" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
+                                <option value="-">Не указан / Не скот</option>
+                                <option value="самец">Самец</option>
+                                <option value="самка">Самка</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Возраст (в месяцах)</label>
+                            <input type="number" id="form-age-months" placeholder="Например: 18" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Вес животного (кг)</label>
+                            <input type="number" id="form-weight" placeholder="Например: 350" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Категория</label>
+                            <select id="form-category" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
+                                <option value="cows">🐂 Коровы / КРС</option>
+                                <option value="sheep">🐑 Бараны / МРС</option>
+                                <option value="horses">🐎 Лошади / Кони</option>
+                                <option value="feed">🌾 Сено / Корма</option>
+                                <option value="tech">🚜 С/Х Техника</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Область</label>
+                            <select id="form-district" onchange="populateSettlements('form-district', 'form-settlement', '', false)" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
+                                <option value="Баткенская обл.">Баткенская область</option>
+                                <option value="Джалал-Абадская обл.">Джалал-Абадская область</option>
+                                <option value="Иссык-Кульская обл.">Иссык-Кульская область</option>
+                                <option value="Нарынская обл.">Нарынская область</option>
+                                <option value="Ошская обл.">Ошская область</option>
+                                <option value="Таласская обл.">Таласская область</option>
+                                <option value="Чуйская обл.">Чуйская область</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Город / Село</label>
+                            <select id="form-settlement" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none cursor-pointer bg-white">
+                            </select>
+                        </div>
+                        <div>
+                            <label id="price-form-label" class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Цена (сом)</label>
+                            <input type="number" id="form-price" placeholder="95000" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Ед. измерения</label>
+                            <select id="form-unit" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
+                                <option value="сом">сом всего</option>
+                                <option value="сом/гол.">сом за голову</option>
+                                <option value="сом/тюк">сом за тюк</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Телефон для связи</label>
+                            <input type="tel" id="form-phone" placeholder="555123456" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Описание (прививки, упитанность)</label>
+                        <textarea id="form-desc" rows="2" placeholder="Опишите состояние животного..." class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 flex gap-2 bg-slate-50">
+                    <button onclick="closeModal()" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all">Отмена</button>
+                    <button onclick="saveNewListing()" class="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md">Опубликовать</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Детальный просмотр объявления -->
+        <div id="listing-details-modal" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 flex items-end transition-all">
+            <div class="bg-white w-full rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col animate-slide-up">
+                <div class="flex justify-center py-2">
+                    <div class="w-10 h-1 bg-slate-200 rounded-full cursor-pointer" onclick="closeDetailsModal()"></div>
+                </div>
+                <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
+                    <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Детали объявления</span>
+                    <button onclick="closeDetailsModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar" id="details-modal-content">
+                    <!-- Загружается из JS -->
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-2" id="details-modal-footer">
+                    <!-- Загружается из JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Окно отправки ценового оффера продавцу -->
+        <div id="offer-price-modal" class="hidden absolute inset-0 bg-slate-950/80 z-55 flex items-center justify-center p-5 backdrop-blur-xs">
+            <div class="bg-white rounded-3xl p-5 shadow-2xl max-w-[300px] w-full text-center space-y-4 animate-slide-up">
+                <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl mx-auto shadow-xs"><i class="fa-solid fa-handshake"></i></div>
+                <div>
+                    <h3 class="font-extrabold text-slate-800 text-xs">Предложить свою цену</h3>
+                    <p class="text-[9.5px] text-slate-400 leading-normal mt-0.5">Предложите продавцу реальную сумму купли прямо сейчас.</p>
+                </div>
+                <div class="relative">
+                    <input type="number" id="offer-custom-amount" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs outline-none text-center font-bold text-slate-800">
+                    <span class="absolute right-3.5 inset-y-0 flex items-center text-xs text-slate-400 font-bold pointer-events-none">сом</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="closeOfferModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-all">Отмена</button>
+                    <button id="submit-offer-btn" class="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] rounded-xl shadow-md transition-all">Отправить оффер</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Редактирование профиля -->
+        <div id="profile-edit-modal" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 flex items-end transition-all">
+            <div class="bg-white w-full rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col animate-slide-up">
+                <div class="flex justify-center py-2">
+                    <div class="w-10 h-1 bg-slate-200 rounded-full cursor-pointer" onclick="closeProfileEditModal()"></div>
+                </div>
+                <div class="px-4 pb-2 flex justify-between items-center border-b border-slate-100">
+                    <h3 class="text-sm font-extrabold text-slate-800">Редактировать профиль</h3>
+                    <button onclick="closeProfileEditModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar">
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Фото профиля</label>
+                        <input type="file" id="form-avatar-input" accept="image/*" class="hidden" onchange="handleAvatarSelection(event)">
+                        <div id="avatar-trigger-area" onclick="triggerAvatarUpload()" class="upload-dashed rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer text-center bg-slate-50/50">
+                            <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm mb-1 shadow-xs"><i class="fa-solid fa-user-astronaut"></i></span>
+                            <span class="text-xs font-bold text-slate-700">Загрузить аватар</span>
+                        </div>
+                        <div id="avatar-preview-area" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 h-24 w-24 mx-auto bg-slate-100 shadow-sm">
+                            <img id="avatar-preview-img" src="" class="w-full h-full object-cover">
+                            <button onclick="removeSelectedAvatar(event)" class="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-black/80 text-[8px]"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">ФИО владельца</label>
+                        <input type="text" id="edit-profile-name" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Основной телефон</label>
+                        <input type="tel" id="edit-profile-phone" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Область</label>
+                            <select id="edit-profile-district" onchange="populateSettlements('edit-profile-district', 'edit-profile-settlement', '', false)" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
+                                <option value="Баткенская обл.">Баткенская область</option>
+                                <option value="Джалал-Абадская обл.">Джалал-Абадская область</option>
+                                <option value="Иссык-Кульская обл.">Иссык-Кульская область</option>
+                                <option value="Нарынская обл.">Нарынская область</option>
+                                <option value="Ошская обл.">Ошская область</option>
+                                <option value="Таласская обл.">Таласская область</option>
+                                <option value="Чуйская обл.">Чуйская область</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">Город / Село</label>
+                            <select id="edit-profile-settlement" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none bg-white">
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-extrabold text-slate-500 uppercase mb-1">О ферме (описание)</label>
+                        <textarea id="edit-profile-bio" rows="2" class="w-full border border-slate-200 focus:border-emerald-500 rounded-xl p-2.5 text-xs outline-none resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 flex gap-2 bg-slate-50">
+                    <button onclick="closeProfileEditModal()" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all">Отмена</button>
+                    <button onclick="saveUserProfile()" class="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Системные оповещения -->
+        <div id="custom-alert" class="hidden absolute inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-5 backdrop-blur-xs">
+            <div class="bg-white rounded-3xl p-4 shadow-2xl max-w-[280px] w-full text-center space-y-3">
+                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-lg mx-auto"><i class="fa-solid fa-circle-info"></i></div>
+                <div class="space-y-1">
+                    <h3 class="font-extrabold text-slate-800 text-xs" id="alert-title">Уведомление</h3>
+                    <p class="text-[10px] text-slate-500 leading-relaxed whitespace-pre-line" id="alert-message"></p>
+                </div>
+                <button onclick="closeAlert()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl shadow-md transition-all">Понятно</button>
+            </div>
+        </div>
+
+        <div id="custom-confirm" class="hidden absolute inset-0 bg-slate-950/75 z-55 flex items-center justify-center p-5 backdrop-blur-xs">
+            <div class="bg-white rounded-3xl p-4 shadow-2xl max-w-[280px] w-full text-center space-y-3">
+                <div class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-lg mx-auto"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="space-y-1">
+                    <h3 class="font-extrabold text-slate-800 text-xs" id="confirm-title">Вы уверены?</h3>
+                    <p class="text-[10px] text-slate-500 leading-relaxed" id="confirm-message"></p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="closeConfirm(false)" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-all">Отмена</button>
+                    <button id="confirm-yes-btn" onclick="closeConfirm(true)" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded-xl shadow-md transition-all">Сбросить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Симулятор Чата -->
+        <div id="telegram-chat-simulator" class="hidden absolute inset-0 bg-[#eef2f3] z-50 flex flex-col pt-8">
+            <div class="bg-[#17212b] text-white px-4 py-3 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-2.5">
+                    <button onclick="closeChatSim()" class="text-slate-400 hover:text-white mr-1 text-sm"><i class="fa-solid fa-arrow-left"></i></button>
+                    <div class="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold" id="chat-sim-avatar">К</div>
+                    <div>
+                        <h4 class="font-bold text-xs leading-tight" id="chat-sim-name">Продавец</h4>
+                        <span class="text-[9px] text-emerald-400 block mt-0.5">онлайн</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3.5 text-slate-400 text-xs">
+                    <i class="fa-solid fa-phone cursor-pointer hover:text-white" id="chat-sim-phone-btn"></i>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-3 space-y-3" id="chat-messages-box" style="background-image: radial-gradient(#d3e3fc 1px, transparent 1px); background-size: 16px 16px;"></div>
+            <div class="p-2 bg-white border-t border-slate-200 flex items-center gap-1.5">
+                <input type="text" id="chat-input-field" placeholder="Напишите сообщение продавцу..." onkeydown="if(event.key === 'Enter') sendChatMessage()" class="flex-1 bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl py-1.5 px-3 text-xs focus:outline-none">
+                <button onclick="sendChatMessage()" class="text-emerald-600 hover:text-emerald-800 text-lg px-2"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- ДИНАМИЧЕСКАЯ ГЕО-БАЗА ---
+        const regionSettlements = {
+            'Баткенская обл.': ['г. Баткен', 'г. Кызыл-Кия', 'г. Кадамжай', 'г. Раззаков', 'с. Халмион (Рынок)', 'с. Уч-Коргон'],
+            'Джалал-Абадская обл.': ['г. Джалал-Абад', 'г. Базар-Коргон', 'г. Кочкор-Ата', 'г. Майлуу-Суу', 'г. Таш-Кумыр', 'г. Кербен', 'с. Сузак'],
+            'Иссык-Кульская обл.': ['г. Каракол', 'г. Чолпон-Ата', 'г. Балыкчы', 'с. Бостери', 'с. Тюп', 'с. Кызыл-Суу'],
+            'Нарынская обл.': ['г. Нарын', 'г. Кочкор (Рынок)', 'с. Ат-Башы', 'с. Чаек'],
+            'Ошская обл.': ['г. Ош', 'с. Жапалак (Рынок)', 'г. Кара-Суу (Рынок)', 'г. Узген', 'г. Ноокат', 'с. Гульча', 'с. Араван', 'с. Мады', 'с. Жаны-Ноокат', 'с. Куршаб'],
+            'Таласская обл.': ['г. Талас', 'с. Бакай-Ата', 'с. Кызыл-Адыр', 'с. Манас'],
+            'Чуйская обл.': ['г. Бишкек', 'г. Токмок (Рынок)', 'г. Кант', 'г. Кара-Балта', 'с. Сокулук', 'с. Беловодское']
+        };
+
+        // --- СОСТОЯНИЕ ДАННЫХ КЛИЕНТА ---
+        let currentTab = 'feed'; 
+        let selectedCategory = 'all'; 
+        let selectedDistrict = 'all'; 
+        let selectedSettlement = 'all';
+        let searchQuery = '';
+        let pendingConfirmAction = null; 
+        let selectedImageBase64 = null; 
+        let selectedAvatarBase64 = null; 
+        
+        let isLoggedIn = false;
+        let currentUser = {
+            name: 'Арсен',
+            phone: '555 123 456',
+            bio: 'Фермер из Ошской обл. Разведение скота гиссарской и швицкой породы.',
+            rating: 4.9,
+            district: 'Ошская обл.',
+            settlement: 'г. Ош',
+            avatar: null
+        };
+        
+        const STORAGE_KEY = 'agromarket_listings_v3_9';
+        const AUTH_STATE_KEY = 'agromarket_logged_in_state_v3_9';
+        const USER_PROFILE_KEY = 'agromarket_user_profile_data_v3_9';
+
+        const MEDIAN_MARKET_PRICES = { cows: 105000, sheep: 15000, horses: 130000, feed: 320, tech: 40000 };
+        
+        // База демо-данных
+        const DEFAULT_LISTINGS = [
+            {
+                id: 999,
+                title: '🔥 АУКЦИОН: Племенной Бык Черный Ангус',
+                category: 'cows',
+                breed: 'Черный Ангус',
+                ageMonths: 24,
+                weight: 420,
+                gender: 'самец',
+                desc: 'Племенной породистый бык Черный Ангус на племя. Возраст 2 года (24 мес.), вес 420 кг. Настоящий великан. Продается в формате онлайн-аукциона! Доступны ставки на повышение.',
+                price: 110000, 
+                startPrice: 110000, 
+                unit: 'сом',
+                district: 'Ошская обл.',
+                settlement: 'с. Жапалак (Рынок)',
+                phone: '+996 550 111 222',
+                author: 'Талант (Фермерское Хозяйство)',
+                isMyListing: false,
+                isAuction: true,
+                views: 247,
+                emoji: '🔥',
+                bgColor: 'from-amber-100 to-red-150',
+                date: 'Активен (Осталось 4 часа)',
+                bids: [
+                    { name: 'Улан', amount: 110000, time: '30 минут назад' },
+                    { name: 'Нурбек', amount: 108000, time: '1 час назад' }
+                ]
+            },
+            {
+                id: 1000,
+                title: '🔥 АУКЦИОН: Элитный Гиссарский Кочкор',
+                category: 'sheep',
+                breed: 'Гиссарская',
+                ageMonths: 18,
+                weight: 95,
+                gender: 'самец',
+                desc: 'Чистокровный племенной гиссарский кочкор. Отличный курдюк, крепкий костяк. Возраст 1.5 года (18 мес.), вес 95 кг. Прекрасный производитель для вашего овцеводства.',
+                price: 25000, 
+                startPrice: 25000, 
+                unit: 'сом',
+                district: 'Джалал-Абадская обл.',
+                settlement: 'г. Базар-Коргон',
+                phone: '+996 777 555 444',
+                author: 'Абдулла',
+                isMyListing: false,
+                isAuction: true,
+                views: 112,
+                emoji: '🐑',
+                bgColor: 'from-amber-50 to-orange-100',
+                date: 'Активен (Осталось 6 часов)',
+                bids: [
+                    { name: 'Канат', amount: 25000, time: '15 минут назад' }
+                ]
+            },
+            {
+                id: 1,
+                title: 'Бычок, Швицкая порода',
+                category: 'cows',
+                breed: 'Швицкая',
+                ageMonths: 20,
+                weight: 280,
+                gender: 'самец',
+                desc: 'Возраст 1.8 года. Вес примерно ~280 кг. Привит по календарю, чистый, упитанный. Натуральный откорм без химии. Возможна доставка.',
+                price: 95000, 
+                startPrice: 95000,
+                unit: 'сом',
+                district: 'Ошская обл.',
+                settlement: 'с. Араван',
+                phone: '+996 555 123 456',
+                author: 'Карим байке',
+                isMyListing: false,
+                isAuction: false,
+                views: 45,
+                emoji: '🐂',
+                bgColor: 'from-amber-100 to-orange-100',
+                date: 'Сегодня, 08:32'
+            },
+            {
+                id: 2,
+                title: '3 Барана на убой (Гиссарские)',
+                category: 'sheep',
+                breed: 'Гиссарская',
+                ageMonths: 12,
+                weight: 55,
+                gender: 'самец',
+                desc: 'Курдючные бараны. Вес около ~55кг каждый. Продаются вместе на Тогуз или Шерине. Отличные курдюки, качественный убойный выход.',
+                price: 14500, 
+                startPrice: 14500,
+                unit: 'сом/гол.',
+                district: 'Ошская обл.',
+                settlement: 'г. Кара-Суу (Рынок)',
+                phone: '+996 772 987 654',
+                author: 'Мурат',
+                isMyListing: false,
+                isAuction: false,
+                views: 29,
+                emoji: '🐑',
+                bgColor: 'from-slate-100 to-neutral-200',
+                date: 'Вчера, 17:15'
+            },
+            {
+                id: 3,
+                title: 'Лошадь (Кобыла), 3 года',
+                category: 'horses',
+                breed: 'Новокиргизская',
+                ageMonths: 36,
+                weight: 350,
+                gender: 'самка',
+                desc: 'Кобыла полукровка с жеребенком (кобылка, 3 месяца). Очень смирная, легко идет в руки. Находится в Джалал-Абадской области.',
+                price: 130000, 
+                startPrice: 130000,
+                unit: 'сом',
+                district: 'Джалал-Абадская обл.',
+                settlement: 'г. Базар-Коргон',
+                phone: '+996 501 223 344',
+                author: 'Бексултан',
+                isMyListing: false,
+                isAuction: false,
+                views: 88,
+                emoji: '🐎',
+                bgColor: 'from-amber-200/40 to-yellow-100',
+                date: 'Вчера, 11:04'
+            },
+            {
+                id: 4,
+                title: 'Сено люцерна (Беде), свежий укос',
+                category: 'feed',
+                breed: '-',
+                ageMonths: null,
+                weight: 20,
+                gender: '-',
+                desc: 'Качественное сено второго укоса, сухое, без сорняков и гнили. Спрессовано плотно в тюки по 18-20 кг. В наличии около 300 тюков.',
+                price: 360, 
+                startPrice: 360,
+                unit: 'сом/тюк',
+                district: 'Чуйская обл.',
+                settlement: 'г. Токмок (Рынок)',
+                phone: '+996 705 445 566',
+                author: 'Куршабский кормовой склад',
+                isMyListing: false,
+                isAuction: false,
+                views: 12,
+                emoji: '🌾',
+                bgColor: 'from-green-100 to-emerald-100',
+                date: 'Сегодня, 06:00'
+            }
+        ];
+
+        let listings = [];
+
+        // --- УМНАЯ СИСТЕМА ОЦЕНКИ ЦЕН ---
+        function calculatePriceAssessment(category, price) {
+            const median = MEDIAN_MARKET_PRICES[category] || 100000;
+            const deviation = ((price - median) / median) * 100;
+            
+            if (deviation < -8) {
+                return {
+                    label: 'Отличная цена',
+                    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                    dotColor: 'bg-emerald-500',
+                    scalePercent: Math.max(10, Math.min(35, 25 + deviation * 0.8)),
+                    percentageText: `Ниже средней на ${Math.abs(Math.round(deviation))}%`
+                };
+            } else if (deviation > 8) {
+                return {
+                    label: 'Выше рынка',
+                    badgeClass: 'bg-rose-100 text-rose-850 border-rose-200',
+                    dotColor: 'bg-rose-500',
+                    scalePercent: Math.min(90, Math.max(65, 75 + (deviation - 8) * 0.4)),
+                    percentageText: `Выше средней на ${Math.round(deviation)}%`
+                };
+            } else {
+                return {
+                    label: 'Рыночная цена',
+                    badgeClass: 'bg-amber-100 text-amber-850 border-amber-200',
+                    dotColor: 'bg-amber-500',
+                    scalePercent: 50 + deviation * 1.2,
+                    percentageText: 'Соответствует средней цене'
+                };
+            }
+        }
+
+        // --- ИНИЦИАЛИЗАЦИЯ ЗАПУСКА ПЛАТФОРМЫ ---
+        window.onload = function() {
+            initApp();
+            renderListings();
+            updateMyListingsBadge();
+            setupHeaderScrollCollapsing();
+        };
+
+        function initApp() {
+            // Загружаем селекторы для мобильной версии
+            populateSettlements('district-filter', 'settlement-filter', 'all', true);
+
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                listings = JSON.parse(stored);
+            } else {
+                listings = [...DEFAULT_LISTINGS];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            }
+
+            listings = listings.map(item => {
+                if (item.startPrice === undefined) item.startPrice = item.price;
+                return item;
+            });
+
+            const savedAuthState = localStorage.getItem(AUTH_STATE_KEY);
+            if (savedAuthState === 'true') isLoggedIn = true;
+            
+            const savedProfile = localStorage.getItem(USER_PROFILE_KEY);
+            if (savedProfile) currentUser = JSON.parse(savedProfile);
+            
+            updateProfileView();
+        }
+
+        function syncSearchInputs(input) {
+            const val = input.value;
+            searchQuery = val.trim().toLowerCase();
+
+            const mSearch = document.getElementById('search-bar');
+            const clearBtn = document.getElementById('clear-search');
+
+            if (mSearch && mSearch !== input) mSearch.value = val;
+
+            if (searchQuery.length > 0) {
+                if (clearBtn) clearBtn.classList.remove('hidden');
+            } else {
+                if (clearBtn) clearBtn.classList.add('hidden');
+            }
+
+            renderListings();
+        }
+
+        function formatAge(months) {
+            if (!months) return '';
+            if (months < 12) {
+                return `${months} мес.`;
+            } else {
+                const years = Math.floor(months / 12);
+                const restMonths = months % 12;
+                let yearStr = 'лет';
+                if (years === 1) yearStr = 'год';
+                else if (years >= 2 && years <= 4) yearStr = 'года';
+                
+                return restMonths > 0 ? `${years} г. ${restMonths} мес.` : `${years} ${yearStr}`;
+            }
+        }
+
+        function toggleMobileAdvancedFilters() {
+            const advFilterDiv = document.getElementById('mobile-advanced-filters');
+            if (advFilterDiv) {
+                advFilterDiv.classList.toggle('hidden');
+            }
+        }
+
+        function populateSettlements(regionSelectId, settlementSelectId, defaultSettlement = 'all', includeAllOption = true) {
+            const regionSelect = document.getElementById(regionSelectId);
+            const settlementSelect = document.getElementById(settlementSelectId);
+            if (!regionSelect || !settlementSelect) return;
+
+            const selectedRegion = regionSelect.value;
+            settlementSelect.innerHTML = '';
+
+            if (includeAllOption) {
+                const allOpt = document.createElement('option');
+                allOpt.value = 'all';
+                allOpt.innerText = '🏡 Все места';
+                settlementSelect.appendChild(allOpt);
+            }
+
+            if (selectedRegion !== 'all' && regionSettlements[selectedRegion]) {
+                regionSettlements[selectedRegion].forEach(settlement => {
+                    const opt = document.createElement('option');
+                    opt.value = settlement;
+                    opt.innerText = settlement;
+                    settlementSelect.appendChild(opt);
+                });
+            } else if (selectedRegion === 'all') {
+                const allSettlements = [];
+                Object.values(regionSettlements).forEach(list => {
+                    list.forEach(s => { if (!allSettlements.includes(s)) allSettlements.push(s); });
+                });
+                allSettlements.sort().forEach(settlement => {
+                    const opt = document.createElement('option');
+                    opt.value = settlement;
+                    opt.innerText = settlement;
+                    settlementSelect.appendChild(opt);
+                });
+            }
+
+            settlementSelect.value = defaultSettlement;
+        }
+
+        function onRegionFilterChange(srcSelectId, targetSelectId) {
+            const srcSelect = document.getElementById(srcSelectId);
+            const mFilter = document.getElementById('district-filter');
+            
+            populateSettlements('district-filter', 'settlement-filter', 'all', true);
+            selectedDistrict = srcSelect ? srcSelect.value : 'all';
+            selectedSettlement = 'all';
+            
+            updateFilterChips();
+            renderListings();
+        }
+
+        function toggleAuctionFormFields() {
+            const isAuctionChecked = document.getElementById('form-is-auction').checked;
+            const priceLabel = document.getElementById('price-form-label');
+            if (priceLabel) priceLabel.innerText = isAuctionChecked ? 'Стартовая цена (сом)' : 'Цена (сом)';
+        }
+
+        function triggerAuth(platform) {
+            const authWall = document.getElementById('profile-auth-wall');
+            const loadingOverlay = document.getElementById('auth-loading-overlay');
+            const btns = authWall.querySelectorAll('button');
+            
+            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+            btns.forEach(b => b.classList.add('hidden'));
+
+            setTimeout(() => {
+                isLoggedIn = true;
+                localStorage.setItem(AUTH_STATE_KEY, 'true');
+                currentUser.name = platform === 'telegram' ? 'Арсен Сатыбалиев' : 'Арсен ИТ';
+                localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(currentUser));
+                
+                if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                btns.forEach(b => b.classList.remove('hidden'));
+                
+                updateProfileView();
+                showToastNotification('Вход выполнен успешно!');
+            }, 1200);
+        }
+
+        function triggerLogout() {
+            showConfirm('Выйти из профиля?', 'Вы выйдете из текущей сессии авторизации.', () => {
+                isLoggedIn = false;
+                localStorage.setItem(AUTH_STATE_KEY, 'false');
+                updateProfileView();
+                showToastNotification('Вы успешно вышли');
+            });
+        }
+
+        function updateProfileView() {
+            const authWall = document.getElementById('profile-auth-wall');
+            const dashboard = document.getElementById('profile-dashboard');
+            if (!authWall || !dashboard) return;
+
+            if (isLoggedIn) {
+                authWall.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                document.getElementById('dashboard-name').innerText = currentUser.name;
+                
+                const dAvatar = document.getElementById('dashboard-avatar-container');
+                if (dAvatar) {
+                    if (currentUser.avatar) dAvatar.innerHTML = `<img src="${currentUser.avatar}" class="w-full h-full object-cover">`;
+                    else dAvatar.innerText = currentUser.name.substring(0, 1).toUpperCase();
+                }
+            } else {
+                authWall.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+            }
+        }
+
+        function openProfileEditModal() {
+            const modal = document.getElementById('profile-edit-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+
+            document.getElementById('edit-profile-name').value = currentUser.name;
+            document.getElementById('edit-profile-phone').value = currentUser.phone ? currentUser.phone.replace('+996 ', '').trim() : '';
+            document.getElementById('edit-profile-district').value = currentUser.district || 'Ошская обл.';
+            populateSettlements('edit-profile-district', 'edit-profile-settlement', currentUser.settlement || '', false);
+            document.getElementById('edit-profile-bio').value = currentUser.bio || '';
+            selectedAvatarBase64 = currentUser.avatar;
+            updateAvatarFormUI();
+        }
+
+        function closeProfileEditModal() {
+            document.getElementById('profile-edit-modal').classList.add('hidden');
+        }
+
+        function triggerAvatarUpload() { document.getElementById('form-avatar-input').click(); }
+
+        function handleAvatarSelection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 120; canvas.height = 120;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) ctx.drawImage(img, 0, 0, 120, 120);
+                    selectedAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    updateAvatarFormUI();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedAvatar(event) {
+            if (event) event.stopPropagation();
+            selectedAvatarBase64 = null;
+            updateAvatarFormUI();
+        }
+
+        function updateAvatarFormUI() {
+            const triggerArea = document.getElementById('avatar-trigger-area');
+            const previewArea = document.getElementById('avatar-preview-area');
+            const previewImg = document.getElementById('avatar-preview-img');
+            if (selectedAvatarBase64) {
+                triggerArea.classList.add('hidden'); previewArea.classList.remove('hidden');
+                previewImg.src = selectedAvatarBase64;
+            } else {
+                triggerArea.classList.remove('hidden'); previewArea.classList.add('hidden');
+                previewImg.src = '';
+            }
+        }
+
+        function saveUserProfile() {
+            const name = document.getElementById('edit-profile-name').value.trim();
+            const phone = document.getElementById('edit-profile-phone').value.trim();
+            if (!name || !phone) { showAlert('Заполните обязательные поля.'); return; }
+
+            currentUser.name = name;
+            currentUser.phone = '+996 ' + phone;
+            currentUser.district = document.getElementById('edit-profile-district').value;
+            currentUser.settlement = document.getElementById('edit-profile-settlement').value;
+            currentUser.bio = document.getElementById('edit-profile-bio').value.trim();
+            currentUser.avatar = selectedAvatarBase64;
+
+            localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(currentUser));
+            closeProfileEditModal(); updateProfileView(); renderListings();
+            showToastNotification('Профиль успешно изменен!');
+        }
+
+        function renderListings() {
+            const feedContainer = document.getElementById('listings-feed');
+            const emptyState = document.getElementById('empty-state');
+            if (!feedContainer) return;
+            feedContainer.innerHTML = '';
+
+            const breedVal = document.getElementById('breed-filter') ? document.getElementById('breed-filter').value : 'all';
+            const genderVal = document.getElementById('gender-filter') ? document.getElementById('gender-filter').value : 'all';
+            const ageVal = document.getElementById('age-filter') ? document.getElementById('age-filter').value : 'all';
+            const minWVal = document.getElementById('weight-min') && document.getElementById('weight-min').value ? parseFloat(document.getElementById('weight-min').value) : null;
+            const maxWVal = document.getElementById('weight-max') && document.getElementById('weight-max').value ? parseFloat(document.getElementById('weight-max').value) : null;
+
+            const filtered = listings.filter(item => {
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesDistrict = selectedDistrict === 'all' || item.district === selectedDistrict;
+                const matchesSettlement = selectedSettlement === 'all' || item.settlement === selectedSettlement;
+                
+                const matchesSearch = searchQuery === '' || 
+                    item.title.toLowerCase().includes(searchQuery) || 
+                    item.desc.toLowerCase().includes(searchQuery) ||
+                    item.district.toLowerCase().includes(searchQuery) ||
+                    item.settlement.toLowerCase().includes(searchQuery) ||
+                    (item.breed && item.breed.toLowerCase().includes(searchQuery));
+                
+                const matchesBreed = breedVal === 'all' || (item.breed && item.breed === breedVal);
+                const matchesGender = genderVal === 'all' || (item.gender && item.gender === genderVal);
+                
+                let matchesAge = true;
+                if (ageVal !== 'all') {
+                    if (!item.ageMonths) {
+                        matchesAge = false;
+                    } else if (ageVal === 'young') {
+                        matchesAge = item.ageMonths < 12;
+                    } else if (ageVal === 'mid') {
+                        matchesAge = item.ageMonths >= 12 && item.ageMonths <= 24;
+                    } else if (ageVal === 'adult') {
+                        matchesAge = item.ageMonths > 24;
+                    }
+                }
+
+                let matchesWeight = true;
+                if (minWVal !== null && (!item.weight || item.weight < minWVal)) matchesWeight = false;
+                if (maxWVal !== null && (!item.weight || item.weight > maxWVal)) matchesWeight = false;
+
+                const matchesTab = currentTab !== 'my-listings' || item.isMyListing === true;
+                const matchesAuctionTab = currentTab !== 'auctions' || item.isAuction === true;
+
+                return matchesCategory && matchesDistrict && matchesSettlement && matchesSearch && matchesTab && matchesBreed && matchesGender && matchesAge && matchesWeight && matchesAuctionTab;
+            });
+
+            document.getElementById('listings-count').innerText = `Показано: ${filtered.length}`;
+
+            if (filtered.length === 0) {
+                feedContainer.classList.add('hidden');
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+
+            feedContainer.classList.remove('hidden');
+            if (emptyState) emptyState.classList.add('hidden');
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-3xl p-3.5 shadow-xs border ${item.isMyListing ? 'border-emerald-250 bg-emerald-50/5' : 'border-slate-100'} hover:shadow-md transition-all relative flex flex-col justify-between`;
+                
+                const evaluation = calculatePriceAssessment(item.category, item.price);
+                const badgeHTML = item.isAuction 
+                    ? `<span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">🔥 Аукцион</span>`
+                    : `<span class="border text-[8px] font-extrabold px-2 py-0.5 rounded-full ${evaluation.badgeClass}">${evaluation.label}</span>`;
+
+                let mediaHTML = item.image 
+                    ? `<img src="${item.image}" class="w-full h-full object-cover rounded-2xl">`
+                    : `<span class="text-3xl">${item.emoji || '🐂'}</span>`;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="w-full h-32 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center overflow-hidden mb-3 relative shadow-inner">
+                            ${mediaHTML}
+                            <span class="absolute top-2 left-2">${badgeHTML}</span>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 text-xs leading-snug cursor-pointer hover:text-emerald-600 transition-all mb-1" onclick="showListingDetails(${item.id})">${item.title}</h3>
+                        <div class="text-emerald-600 font-black text-sm mb-2">${formatPrice(item.price)} <span class="text-[10px] font-bold">${item.unit}</span></div>
+                        <p class="text-[11px] text-slate-500 leading-normal mb-3 border-t border-slate-50 pt-2 line-clamp-2">${item.desc}</p>
+                    </div>
+                    <div>
+                        <div class="grid grid-cols-3 gap-1.5 mb-2.5">
+                            <button onclick="triggerCall('${item.phone}', '${item.author}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-solid fa-phone"></i> Колл</button>
+                            <button onclick="triggerTelegramChat('${item.author}', '${item.title}', '${formatPrice(item.price)}', '${item.phone}')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-[10px] py-2 rounded-xl transition-all"><i class="fa-brands fa-telegram"></i> Чат</button>
+                            <button onclick="showListingMap('${item.settlement}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-[10px] py-2 rounded-xl transition-all">Карта</button>
+                        </div>
+                        <div class="flex justify-between items-center text-[9px] text-slate-400 border-t border-slate-50 pt-2">
+                            <span class="truncate max-w-[150px] font-medium"><i class="fa-solid fa-location-dot text-emerald-600 mr-0.5"></i> ${item.settlement}</span>
+                            <span>👁️ ${item.views}</span>
+                        </div>
+                    </div>
+                `;
+                feedContainer.appendChild(card);
+            });
+        }
+
+        function showListingDetails(id) {
+            const item = listings.find(l => l.id === id);
+            if (!item) return;
+            item.views++; renderListings();
+
+            const modalContent = document.getElementById('details-modal-content');
+            const modalFooter = document.getElementById('details-modal-footer');
+            const assessment = calculatePriceAssessment(item.category, item.price);
+            const medianPriceFormatted = formatPrice(MEDIAN_MARKET_PRICES[item.category] || 100000);
+
+            const ageFormatted = item.ageMonths ? formatAge(item.ageMonths) : 'Не указан';
+            const weightFormatted = item.weight ? `${item.weight} кг` : 'Не указан';
+            const genderFormatted = item.gender === 'самец' ? '♂️ Самец' : item.gender === 'самка' ? '♀️ Самка' : 'Не указан';
+            const breedFormatted = item.breed || 'Не указана';
+
+            let specsHTML = '';
+            if (item.category === 'cows' || item.category === 'sheep' || item.category === 'horses') {
+                specsHTML = `
+                    <div class="bg-slate-100/50 p-3 rounded-2xl border border-slate-150/60 grid grid-cols-2 gap-2 text-xs">
+                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Порода</span> <b class="block text-slate-700">${breedFormatted}</b></div>
+                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Пол</span> <b class="block text-slate-700">${genderFormatted}</b></div>
+                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Возраст</span> <b class="block text-slate-700">${ageFormatted}</b></div>
+                        <div><span class="text-[9px] text-slate-400 uppercase font-black">Вес животного</span> <b class="block text-slate-700">${weightFormatted}</b></div>
+                    </div>
+                `;
+            }
+
+            let auctionHTML = '';
+            if (item.isAuction) {
+                let bidsLog = '';
+                (item.bids || []).forEach(b => {
+                    bidsLog += `<div class="flex justify-between text-[9px] py-1 border-b border-slate-100"><span>👤 ${b.name}</span><b>${formatPrice(b.amount)} сом</b></div>`;
+                });
+                auctionHTML = `
+                    <div class="bg-gradient-to-br from-red-50 to-orange-50 border border-orange-200 p-3 rounded-2xl space-y-3">
+                        <div class="flex justify-between text-[9px] font-bold text-red-600 uppercase"><span>🔥 Онлайн-Торги</span><span>Осталось: 04:12</span></div>
+                        <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                            <div class="bg-white p-2 rounded-xl border"><span>Старт:</span> <b class="block">${formatPrice(item.startPrice)} сом</b></div>
+                            <div class="bg-white p-2 rounded-xl border text-red-600"><span>Ставка:</span> <b class="block" id="auction-current-bid-label">${formatPrice(item.price)} сом</b></div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="raiseBid(${item.id})" class="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-white font-black text-xs py-2 rounded-xl shadow-xs">💵 Поднять ставку (+2 000)</button>
+                            <button onclick="openOfferModal(${item.id})" class="bg-white border text-slate-700 font-bold text-xs px-3 rounded-xl">Предложить цену</button>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-xl border text-[9px] max-h-[80px] overflow-y-auto" id="auction-bids-history-box">${bidsLog}</div>
+                        <div class="flex gap-2 pt-1 border-t border-slate-200/50">
+                            <button onclick="lowerStartingPrice(${item.id})" class="flex-1 bg-white border text-rose-600 text-[9px] py-1 rounded-lg">🔽 Снизить старт (-5 000)</button>
+                            <button onclick="raiseStartingPrice(${item.id})" class="flex-1 bg-white border text-emerald-600 text-[9px] py-1 rounded-lg">🔼 Поднять старт (+5 000)</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                auctionHTML = `
+                    <div class="bg-emerald-50/40 border border-emerald-100 p-3 rounded-2xl flex justify-between items-center">
+                        <div class="text-[10px]"><b class="block text-emerald-900">Предложить свою цену</b><span class="text-slate-500">Отправьте оффер продавцу напрямую</span></div>
+                        <button onclick="openOfferModal(${item.id})" class="bg-emerald-600 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl">Предложить</button>
+                    </div>
+                `;
+            }
+
+            modalContent.innerHTML = `
+                <div class="w-full h-40 bg-slate-50 rounded-2xl overflow-hidden shadow-inner">
+                    ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-5xl bg-slate-200">${item.emoji}</div>`}
+                </div>
+                <div>
+                    <h2 class="text-sm font-extrabold text-slate-800 leading-tight">${item.title}</h2>
+                    <div class="text-lg font-black text-emerald-600 mt-1" id="details-modal-price-label">${formatPrice(item.price)} <span class="text-xs font-bold">${item.unit}</span></div>
+                </div>
+                
+                ${specsHTML}
+
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 space-y-2">
+                    <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase"><span>📊 Аналитика цен</span><span id="details-assessment-badge" class="border px-2 py-0.5 rounded-full ${assessment.badgeClass}">${assessment.label}</span></div>
+                    <div class="relative pt-2 pb-1"><div class="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-400 rounded-full relative"><div id="details-assessment-cursor" class="absolute -top-1 w-3.5 h-3.5 rounded-full border border-white shadow-sm ${assessment.dotColor}" style="left: ${assessment.scalePercent}%;"></div></div></div>
+                    <p id="details-assessment-text" class="text-[9.5px] text-slate-500 text-center">${assessment.percentageText} относительно среднего рынка (~${medianPriceFormatted} сом)</p>
+                </div>
+                ${auctionHTML}
+                <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-2xl border">
+                    <p class="text-slate-600"><b class="text-slate-400 font-bold uppercase text-[9px] block">📍 Локация:</b>${item.settlement} (${item.district})</p>
+                    <p class="text-slate-600 mt-2"><b class="text-slate-400 font-bold uppercase text-[9px] block">📝 Описание продавца:</b>${item.desc}</p>
+                </div>
+
+                <!-- Рекомендация по безопасности перенесена на карточку товара -->
+                <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 flex items-start gap-2.5">
+                    <span class="text-amber-600 text-base mt-0.5"><i class="fa-solid fa-shield-halved"></i></span>
+                    <div>
+                        <h5 class="text-[10px] font-bold text-amber-900 leading-none mb-1">Рекомендация по безопасности</h5>
+                        <p class="text-[9px] text-amber-800/80 leading-normal font-medium">
+                            Никогда не отправляйте предоплату на электронные кошельки или карты! Покупайте скот только при личной встрече. Передавайте деньги строго из рук в руки только после полной проверки и осмотра животного на месте.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            modalFooter.innerHTML = `
+                <button onclick="copyMockAdLink(${item.id})" class="bg-slate-100 text-slate-600 font-bold text-xs px-3 rounded-xl"><i class="fa-solid fa-share-nodes"></i></button>
+                <button onclick="triggerCall('${item.phone}', '${item.author}')" class="flex-1 bg-emerald-50 text-emerald-700 font-bold text-xs py-2.5 rounded-xl">📞 Позвонить</button>
+                <button onclick="triggerTelegramChat('${item.author}', '${item.title}', '${formatPrice(item.price)}', '${item.phone}')" class="flex-1 bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs">💬 Написать в чат</button>
+            `;
+            document.getElementById('listing-details-modal').classList.remove('hidden');
+        }
+
+        function closeDetailsModal() { document.getElementById('listing-details-modal').classList.add('hidden'); }
+
+        function raiseBid(id) {
+            const item = listings.find(l => l.id === id); if (!item) return;
+            item.price += 2000;
+            if (!item.bids) item.bids = [];
+            item.bids.unshift({ name: isLoggedIn ? currentUser.name : 'Покупатель ' + Math.floor(Math.random()*100), amount: item.price, time: 'Только что' });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            showToastNotification(`Ставка зарегистрирована!`);
+            showListingDetails(item.id);
+        }
+
+        function lowerStartingPrice(id) {
+            const item = listings.find(l => l.id === id); if (!item) return;
+            const oldStart = item.startPrice || item.price;
+            if (oldStart - 5000 < 10000) { showAlert('Нельзя опустить цену ниже минимального лимита рынка.'); return; }
+            if (item.price === oldStart) item.price -= 5000;
+            item.startPrice = oldStart - 5000;
+            if (!item.bids) item.bids = [];
+            item.bids.unshift({ name: 'Уступка продавца', amount: item.startPrice, time: 'Только что' });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            showListingDetails(item.id);
+        }
+
+        function raiseStartingPrice(id) {
+            const item = listings.find(l => l.id === id); if (!item) return;
+            const oldStart = item.startPrice || item.price;
+            if (item.price === oldStart) item.price += 5000;
+            item.startPrice = oldStart + 5000;
+            if (!item.bids) item.bids = [];
+            item.bids.unshift({ name: 'Повышение продавца', amount: item.startPrice, time: 'Только что' });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            showListingDetails(item.id);
+        }
+
+        function openOfferModal(id) {
+            const item = listings.find(l => l.id === id); if (!item) return;
+            const modal = document.getElementById('offer-price-modal');
+            if (modal) modal.classList.remove('hidden');
+            document.getElementById('offer-custom-amount').value = Math.round(item.price * 0.95);
+            document.getElementById('submit-offer-btn').onclick = function() { submitOfferAmount(item); };
+        }
+
+        function closeOfferModal() { document.getElementById('offer-price-modal').classList.add('hidden'); }
+
+        function submitOfferAmount(item) {
+            const amount = parseFloat(document.getElementById('offer-custom-amount').value);
+            if (!amount || amount <= 0) return;
+            closeOfferModal(); closeDetailsModal();
+            triggerTelegramChat(item.author, item.title, formatPrice(amount), item.phone);
+            
+            const box = document.getElementById('chat-messages-box');
+            if (box) {
+                box.innerHTML += `
+                    <div class="flex items-start gap-2 max-w-[85%] self-end flex-row-reverse ml-auto">
+                        <div class="bg-emerald-600 text-white rounded-2xl p-2.5 text-[11px]">
+                            Салам алейкум! Предлагаю забрать "${item.title}" за <b>${formatPrice(amount)} сом</b> прямо сейчас!
+                        </div>
+                    </div>
+                `;
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function setupHeaderScrollCollapsing() {
+            const scrollContainer = document.getElementById('main-scroll-container');
+            const brandHeader = document.getElementById('brand-header');
+            const geoFilters = document.getElementById('geo-filters');
+            if (!scrollContainer) return;
+
+            scrollContainer.addEventListener('scroll', function() {
+                if (currentTab !== 'feed' && currentTab !== 'auctions') return; 
+                
+                if (scrollContainer.scrollTop > 15) {
+                    if (brandHeader) {
+                        brandHeader.style.maxHeight = '0px';
+                        brandHeader.style.opacity = '0';
+                        brandHeader.style.marginBottom = '0px';
+                    }
+                    if (geoFilters) {
+                        geoFilters.style.maxHeight = '0px';
+                        geoFilters.style.opacity = '0';
+                        geoFilters.style.padding = '0px';
+                        geoFilters.style.borderWidth = '0px';
+                        geoFilters.style.marginTop = '0px';
+                        geoFilters.style.marginBottom = '0px';
+                    }
+                } else {
+                    if (brandHeader) {
+                        brandHeader.style.maxHeight = '44px';
+                        brandHeader.style.opacity = '1';
+                        brandHeader.style.marginBottom = '12px';
+                    }
+                    if (geoFilters) {
+                        geoFilters.style.maxHeight = '80px';
+                        geoFilters.style.opacity = '1';
+                        geoFilters.style.padding = '12px'; 
+                        geoFilters.style.borderWidth = '1px';
+                        geoFilters.style.marginTop = '0px';
+                        geoFilters.style.marginBottom = '0px';
+                    }
+                }
+            });
+        }
+
+        function switchTab(tab) {
+            if (tab === 'feed' && currentTab === 'feed') { resetFilters(); return; }
+            currentTab = tab;
+
+            document.querySelectorAll('nav button, header button').forEach(btn => {
+                btn.classList.remove('text-emerald-600', 'bg-emerald-50', 'font-bold');
+            });
+
+            const mNav = document.getElementById(`nav-${tab}`);
+            const dkNav = document.getElementById(`dk-nav-${tab}`);
+            if (mNav) mNav.classList.add('text-emerald-600', 'font-bold');
+            if (dkNav) dkNav.classList.add('text-emerald-600', 'bg-emerald-50');
+
+            const mFilters = document.getElementById('geo-filters');
+            const mSearch = document.getElementById('search-container');
+            const mLogo = document.getElementById('brand-header');
+
+            if (tab === 'feed' || tab === 'auctions') {
+                if (mFilters) mFilters.classList.remove('hidden');
+                if (mSearch) mSearch.classList.remove('hidden');
+                if (mLogo) { mLogo.style.maxHeight = '44px'; mLogo.style.opacity = '1'; mLogo.style.marginBottom = '12px'; }
+                document.getElementById('categories-section').classList.remove('hidden');
+                document.getElementById('listings-feed').classList.remove('hidden');
+                document.getElementById('profile-container').classList.add('hidden');
+                document.getElementById('categories-container').classList.add('hidden');
+                document.getElementById('feed-title').innerText = tab === 'auctions' ? "Онлайн-Аукционы" : "Объявления рынка";
+                renderListings();
+            } else {
+                if (mFilters) mFilters.classList.add('hidden');
+                if (mSearch) mSearch.classList.add('hidden');
+                if (mLogo) { mLogo.style.maxHeight = '44px'; mLogo.style.opacity = '1'; mLogo.style.marginBottom = '0px'; }
+                document.getElementById('categories-section').classList.add('hidden');
+                document.getElementById('listings-feed').classList.add('hidden');
+                document.getElementById('empty-state').classList.add('hidden');
+
+                if (tab === 'categories') {
+                    document.getElementById('categories-container').classList.remove('hidden');
+                    document.getElementById('profile-container').classList.add('hidden');
+                    document.getElementById('feed-title').innerText = "Каталог категорий";
+                    renderCategoriesTab();
+                } else if (tab === 'my-listings') {
+                    document.getElementById('listings-feed').classList.remove('hidden');
+                    document.getElementById('profile-container').classList.add('hidden');
+                    document.getElementById('categories-container').classList.add('hidden');
+                    document.getElementById('feed-title').innerText = "Мои объявления";
+                    renderListings();
+                } else if (tab === 'profile') {
+                    document.getElementById('profile-container').classList.remove('hidden');
+                    document.getElementById('categories-container').classList.add('hidden');
+                    document.getElementById('feed-title').innerText = "Кабинет фермера";
+                    updateProfileView();
+                }
+            }
+            document.getElementById('main-scroll-container').scrollTop = 0;
+        }
+
+        function renderCategoriesTab() {
+            const grid = document.getElementById('categories-tab-grid'); if (!grid) return;
+            grid.innerHTML = '';
+            const cats = [
+                { id: 'cows', label: 'Коровы / КРС', emoji: '🐂', col: 'from-amber-50 to-orange-50' },
+                { id: 'sheep', label: 'Бараны / МРС', emoji: '🐑', col: 'from-slate-50 to-neutral-100' },
+                { id: 'horses', label: 'Лошади / Кони', emoji: '🐎', col: 'from-amber-100/20 to-yellow-50' },
+                { id: 'feed', label: 'Сено / Корма', emoji: '🌾', col: 'from-green-50 to-emerald-50' },
+                { id: 'tech', label: 'С/Х Техника', emoji: '🚜', col: 'from-emerald-50 to-cyan-50' }
+            ];
+            cats.forEach(c => {
+                const count = listings.filter(i => i.category === c.id).length;
+                const card = document.createElement('div');
+                card.className = `bg-gradient-to-br ${c.col} border border-slate-100 rounded-3xl p-4 flex flex-col justify-between h-28 cursor-pointer hover:shadow-sm transition-all`;
+                card.onclick = () => { selectCategory(c.id); switchTab('feed'); };
+                card.innerHTML = `<div class="flex justify-between text-xl"><span>${c.emoji}</span><span class="text-[9px] bg-white px-2 py-0.5 rounded-full font-black text-slate-500">${count} лотов</span></div><div class="font-extrabold text-xs text-slate-800 mt-2">${c.label}</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function openSellModal() {
+            document.getElementById('add-listing-modal').classList.remove('hidden');
+            document.getElementById('form-phone').value = isLoggedIn ? currentUser.phone.replace('+996 ', '').trim() : '555123456';
+            document.getElementById('form-district').value = currentUser.district || 'Ошская обл.';
+            populateSettlements('form-district', 'form-settlement', currentUser.settlement || '', false);
+            
+            document.getElementById('form-breed').value = '';
+            document.getElementById('form-gender').value = '-';
+            document.getElementById('form-age-months').value = '';
+            document.getElementById('form-weight').value = '';
+
+            resetUploadFormUI();
+        }
+
+        function closeModal() { document.getElementById('add-listing-modal').classList.add('hidden'); }
+        function triggerImageUpload() { document.getElementById('form-image-input').click(); }
+
+        function handleImageSelection(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 400; canvas.height = 300;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) ctx.drawImage(img, 0, 0, 400, 300);
+                    selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('upload-trigger-area').classList.add('hidden');
+                    document.getElementById('upload-preview-area').classList.remove('hidden');
+                    document.getElementById('upload-preview-img').src = selectedImageBase64;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedImage(event) {
+            if (event) event.stopPropagation();
+            resetUploadFormUI();
+        }
+
+        function resetUploadFormUI() {
+            selectedImageBase64 = null; document.getElementById('form-image-input').value = '';
+            document.getElementById('upload-trigger-area').classList.remove('hidden');
+            document.getElementById('upload-preview-area').classList.add('hidden');
+        }
+
+        function saveNewListing() {
+            const title = document.getElementById('form-title').value.trim();
+            const price = parseFloat(document.getElementById('form-price').value);
+            const desc = document.getElementById('form-desc').value.trim();
+            const phone = document.getElementById('form-phone').value.trim();
+
+            const breed = document.getElementById('form-breed').value.trim();
+            const gender = document.getElementById('form-gender').value;
+            const ageMonths = parseInt(document.getElementById('form-age-months').value);
+            const weight = parseFloat(document.getElementById('form-weight').value);
+
+            if (!title || !price || !desc || !phone) { showAlert('Пожалуйста, заполните форму полностью.'); return; }
+
+            const newAd = {
+                id: Date.now(), 
+                title, 
+                category: document.getElementById('form-category').value,
+                breed: breed || 'Местная',
+                gender: gender !== '-' ? gender : '-',
+                ageMonths: !isNaN(ageMonths) ? ageMonths : null,
+                weight: !isNaN(weight) ? weight : null,
+                desc, 
+                price, 
+                startPrice: price, 
+                unit: document.getElementById('form-unit').value,
+                district: document.getElementById('form-district').value, 
+                settlement: document.getElementById('form-settlement').value,
+                phone: '+996 ' + phone, 
+                author: isLoggedIn ? currentUser.name : 'Арсен (Вы)', 
+                isMyListing: true,
+                isAuction: document.getElementById('form-is-auction').checked, 
+                bids: [], 
+                views: 1, 
+                emoji: '🐂', 
+                date: 'Только что', 
+                image: selectedImageBase64
+            };
+
+            listings.unshift(newAd); localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            closeModal(); updateMyListingsBadge(); switchTab('feed');
+            showToastNotification('Лот успешно размещен на рынке!');
+        }
+
+        function updateMyListingsBadge() {
+            const count = listings.filter(i => i.isMyListing).length;
+            const badge = document.getElementById('badge-my-listings');
+            const dkBadge = document.getElementById('dk-badge-my-listings');
+            if (badge) { badge.innerText = count; badge.classList.toggle('hidden', count === 0); }
+            if (dkBadge) { dkBadge.innerText = count; dkBadge.classList.toggle('hidden', count === 0); }
+        }
+
+        function selectCategory(cat) {
+            selectedCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-50/50', 'text-emerald-600', 'scale-105');
+            });
+            if (cat !== 'all') {
+                const active = document.getElementById(`cat-${cat}`);
+                if (active) active.classList.add('border-emerald-500', 'bg-emerald-50/50', 'text-emerald-600', 'scale-105');
+                document.getElementById('category-clear-btn').style.display = 'block';
+            } else {
+                document.getElementById('category-clear-btn').style.display = 'none';
+            }
+            updateFilterChips(); renderListings();
+        }
+
+        function clearSearch() {
+            document.getElementById('search-bar').value = '';
+            searchQuery = '';
+            document.getElementById('clear-search').classList.add('hidden');
+            renderListings();
+        }
+
+        function resetFilters() {
+            document.getElementById('district-filter').value = 'all';
+            
+            document.getElementById('breed-filter').value = 'all';
+            document.getElementById('gender-filter').value = 'all';
+            document.getElementById('age-filter').value = 'all';
+            document.getElementById('weight-min').value = '';
+            document.getElementById('weight-max').value = '';
+
+            populateSettlements('district-filter', 'settlement-filter', 'all', true);
+            selectedDistrict = 'all'; selectedSettlement = 'all';
+            selectCategory('all'); clearSearch();
+        }
+
+        function updateFilterChips() {
+            const container = document.getElementById('filter-chips-container');
+            const list = document.getElementById('chips-list');
+            if (!container || !list) return;
+            list.innerHTML = ''; let active = false;
+
+            if (selectedCategory !== 'all') { addChip('Категория', () => selectCategory('all')); active = true; }
+            if (selectedDistrict !== 'all') { addChip(selectedDistrict.replace(' обл.',''), () => { document.getElementById('district-filter').value='all'; onRegionFilterChange('district-filter','settlement-filter'); }); active = true; }
+            if (selectedSettlement !== 'all') { addChip(selectedSettlement, () => { document.getElementById('settlement-filter').value='all'; filterListings(); }); active = true; }
+            container.classList.toggle('hidden', !active);
+        }
+
+        function addChip(txt, onRemove) {
+            const chip = document.createElement('div');
+            chip.className = "bg-emerald-100 text-emerald-800 text-[9px] font-bold py-0.5 px-2 rounded-full flex items-center gap-1 cursor-pointer";
+            chip.innerHTML = `<span>${txt}</span><i class="fa-solid fa-circle-xmark opacity-60"></i>`;
+            chip.onclick = onRemove; document.getElementById('chips-list').appendChild(chip);
+        }
+
+        function filterListings() {
+            selectedDistrict = document.getElementById('district-filter').value;
+            selectedSettlement = document.getElementById('settlement-filter').value;
+            updateFilterChips(); renderListings();
+        }
+
+        function triggerCall(phone, author) {
+            const clean = phone.replace(/[^+\d]/g, '');
+            showToastNotification(`Звонок фермеру ${author}...`);
+            setTimeout(() => { window.location.href = 'tel:' + clean; }, 350);
+        }
+
+        function triggerTelegramChat(author, title, price, phone) {
+            const box = document.getElementById('chat-messages-box');
+            if (!box) return;
+            document.getElementById('chat-sim-name').innerText = author;
+            document.getElementById('chat-sim-avatar').innerText = author.substring(0,1).toUpperCase();
+            document.getElementById('chat-sim-phone-btn').onclick = () => triggerCall(phone, author);
+            
+            box.innerHTML = `
+                <div class="flex items-start gap-2 max-w-[85%]">
+                    <div class="bg-white rounded-2xl p-2.5 text-[11px] border shadow-xs">
+                        <b>Система:</b> Переписка по поводу лота "${title}" за ${price} сом.
+                    </div>
+                </div>
+            `;
+            document.getElementById('telegram-chat-simulator').classList.remove('hidden');
+        }
+
+        function sendChatMessage() {
+            const f = document.getElementById('chat-input-field'); const val = f.value.trim(); if (!val) return;
+            const box = document.getElementById('chat-messages-box');
+            box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%] self-end flex-row-reverse ml-auto"><div class="bg-emerald-600 text-white rounded-2xl p-2.5 text-[11px]">${val}</div></div>`;
+            f.value = ''; box.scrollTop = box.scrollHeight;
+            setTimeout(() => {
+                box.innerHTML += `<div class="flex items-start gap-2 max-w-[85%]"><div class="bg-white border rounded-2xl p-2.5 text-[11px]">Салам! Да, лот актуален. Скот чистый, здоровый, можете приехать посмотреть. По цене немного уступлю.</div></div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 1000);
+        }
+
+        function closeChatSim() { document.getElementById('telegram-chat-simulator').classList.add('hidden'); }
+        function mockChatSupport() { triggerTelegramChat('Диспетчер поддержки', 'Поддержка пользователей', '0', '+996555111222'); }
+        function showSafetyTips() { showAlert('1. Никаких предоплат на карты!\n2. Покупка только при личной встрече на скотном рынке.\n3. Оплата строго из рук в руки после осмотра животного.', '🛡️ Безопасность'); }
+        function showListingMap(set) { showAlert(`Лот находится: ${set}.\nНа картах Яндекса скоро будет доступна точная гео-метка загона.`, '📍 Геолокация'); }
+        function copyMockAdLink(id) { showAlert(`Ссылка скопирована: https://muu.kg/lot/${id}`); }
+        
+        function closeAlert() { document.getElementById('custom-alert').classList.add('hidden'); }
+        function showAlert(msg, title="Уведомление") { document.getElementById('alert-title').innerText = title; document.getElementById('alert-message').innerText = msg; document.getElementById('custom-alert').classList.remove('hidden'); }
+        
+        function showConfirm(title, message, callback) { document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-message').innerText = message; document.getElementById('custom-confirm').classList.remove('hidden'); pendingConfirmAction = callback; }
+        function closeConfirm(yes) { document.getElementById('custom-confirm').classList.add('hidden'); if(yes && pendingConfirmAction) pendingConfirmAction(); pendingConfirmAction = null; }
+        
+        function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\n))/g, " "); }
+
+        function showToastNotification(txt) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-4 py-2.5 rounded-2xl shadow-xl z-55 border border-slate-800";
+            toast.onclick = () => { toast.remove(); };
+            toast.innerHTML = `✅ ${txt}`; document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 2200);
+        }
+    </script>
+</body>
+</html>
