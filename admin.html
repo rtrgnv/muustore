@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUU — Панель Администратора</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0b1329; 
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .terminal-glow { text-shadow: 0 0 4px rgba(34, 197, 94, 0.4); }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-12 select-none">
+
+    <!-- Шапка Администратора -->
+    <header class="bg-slate-900/80 border-b border-slate-800 sticky top-0 backdrop-blur-md z-40 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="bg-amber-500 text-slate-950 px-3 py-1 rounded-xl text-sm font-black shadow-md tracking-wider uppercase">MUU Admin</span>
+                <h1 class="text-xs font-bold text-slate-400 tracking-widest uppercase hidden sm:block">Система Управления Экосистемой</h1>
+            </div>
+            <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl border border-slate-700/60 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i> На главный сайт
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+
+        <!-- 📊 БЛОК МЕТРИК -->
+        <section class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div class="bg-slate-900/60 p-5 rounded-3xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Активные лоты</span>
+                    <span id="stat-lots" class="text-3xl font-black text-emerald-400 mt-1 block">0</span>
+                </div>
+                <div class="text-2xl text-slate-800 bg-emerald-500/10 p-3 rounded-xl"><i class="fa-solid fa-cow text-emerald-500"></i></div>
+            </div>
+            <div class="bg-slate-900/60 p-5 rounded-3xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Оборот по ставкам</span>
+                    <span id="stat-bids" class="text-2xl font-black text-amber-400 mt-1 block">0 сом</span>
+                </div>
+                <div class="text-2xl text-slate-800 bg-amber-500/10 p-3 rounded-xl"><i class="fa-solid fa-gavel text-amber-500"></i></div>
+            </div>
+            <div class="bg-slate-900/60 p-5 rounded-3xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Забанено авторов</span>
+                    <span id="stat-banned" class="text-3xl font-black text-rose-500 mt-1 block">0</span>
+                </div>
+                <div class="text-2xl text-slate-800 bg-rose-500/10 p-3 rounded-xl"><i class="fa-solid fa-user-slash text-rose-500"></i></div>
+            </div>
+            <div class="bg-slate-900/60 p-5 rounded-3xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Пользователи КР</span>
+                    <span class="text-3xl font-black text-blue-400 mt-1 block">1 405</span>
+                </div>
+                <div class="text-2xl text-slate-800 bg-blue-500/10 p-3 rounded-xl"><i class="fa-solid fa-users text-blue-400"></i></div>
+            </div>
+        </section>
+
+        <!-- ⚙️ ПАНЕЛЬ БЫСТРЫХ ИНСТРУМЕНТОВ -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Генератор и Сброс (Колонка 1) -->
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-5 space-y-4">
+                <h3 class="text-xs font-black text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2">Генератор контента</h3>
+                <p class="text-[11px] text-slate-400 leading-normal">Быстрое наполнение платформы muu.kg реалистичными фермерскими объявлениями для тестирования трафика.</p>
+                
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="adminGenerateRandomLot(1)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> +1 Лот
+                    </button>
+                    <button onclick="adminGenerateRandomLot(5)" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-bolt"></i> +5 Лотов
+                    </button>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="adminResetDatabase()" class="w-full bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white font-extrabold text-[10px] py-2.5 rounded-xl border border-red-500/20 transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-arrows-rotate"></i> Восстановить демо-базу лотов
+                    </button>
+                </div>
+            </div>
+
+            <!-- Управление средними ценами (Колонка 2) -->
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-5 space-y-4">
+                <h3 class="text-xs font-black text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2">Медианные цены КР (Аналитика)</h3>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[8px] text-slate-500 font-extrabold uppercase tracking-wider mb-1">🐂 Коровы (сом)</label>
+                        <input type="number" id="median-cows" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none text-emerald-400 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[8px] text-slate-500 font-extrabold uppercase tracking-wider mb-1">🐑 Бараны (сом)</label>
+                        <input type="number" id="median-sheep" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none text-emerald-400 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[8px] text-slate-500 font-extrabold uppercase tracking-wider mb-1">🐎 Лошади (сом)</label>
+                        <input type="number" id="median-horses" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none text-emerald-400 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[8px] text-slate-500 font-extrabold uppercase tracking-wider mb-1">🌾 Корма (сом/тюк)</label>
+                        <input type="number" id="median-feed" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none text-emerald-400 focus:border-emerald-500">
+                    </div>
+                </div>
+                <button onclick="adminSaveMedianPrices()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-black py-2 rounded-xl border border-slate-700/60 transition-all">
+                    Сохранить настройки цен
+                </button>
+            </div>
+
+            <!-- Управление банами и черным списком (Колонка 3) -->
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-5 space-y-3">
+                <h3 class="text-xs font-black text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2">Черный список авторов</h3>
+                <div id="admin-banned-authors-list" class="space-y-1.5 max-h-[110px] overflow-y-auto no-scrollbar">
+                    <!-- Заполняется динамически -->
+                </div>
+                <div class="flex gap-1.5 pt-1">
+                    <input type="text" id="blacklist-input" placeholder="Имя спамера..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs outline-none focus:border-red-500 text-slate-200">
+                    <button onclick="adminBanAuthorDirectly()" class="bg-rose-500 text-slate-950 font-black text-xs px-3 rounded-xl hover:bg-rose-400 transition-all">В Бан</button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 🖥&nbsp;ТАБЛИЦА ЛОТОВ С МОДЕРАЦИЕЙ -->
+        <section class="bg-slate-900/40 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+            <h2 class="text-xs font-black text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-3">Интерактивный пульт управления базой лотов</h2>
+            <div id="admin-table-container" class="space-y-2.5 max-h-[400px] overflow-y-auto no-scrollbar pr-1"></div>
+        </section>
+
+        <!-- 📟 СИСТЕМНЫЙ ТЕРМИНАЛ / КИБЕР-ЛОГ -->
+        <section class="bg-black border border-slate-800 rounded-3xl p-4 shadow-2xl space-y-2">
+            <div class="flex justify-between items-center text-[10px] text-slate-400 font-extrabold uppercase tracking-widest border-b border-slate-900 pb-2">
+                <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> Live Action Terminal logs</span>
+                <button onclick="adminClearLogs()" class="text-slate-500 hover:text-slate-300 transition-all">Очистить лог</button>
+            </div>
+            <div id="admin-terminal" class="font-mono text-[10.5px] text-emerald-500 space-y-1 max-h-[160px] overflow-y-auto no-scrollbar pr-1 terminal-glow"></div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'agromarket_listings_v3_9';
+        let listings = [];
+
+        // Списки генератора
+        const gCats = ['cows', 'sheep', 'horses', 'feed', 'tech'];
+        const gEmojis = { cows: '🐂', sheep: '🐑', horses: '🐎', feed: '🌾', tech: '🚜' };
+        const gTitles = {
+            cows: ['Бычок Швиц упитанный', 'Молочная корова Алатау', 'Элитный Бык Черный Ангус', 'Бычки на откорм', 'Племенная Телка'],
+            sheep: ['Гиссарский Кочкор Валух', 'Арашан баран на племя', 'Бараны курдючные упитанные', 'Ягненок козу на Тогуз', 'Овцематка'],
+            horses: ['Жеребец Новокиргизской породы', 'Кобыла трехлетка смирная', 'Конь Кунан скоростной', 'Жеребенок кулун'],
+            feed: ['Сено люцерна свежий укос', 'Ячмень кормовой в мешках', 'Клевер сухой прессованный', 'Эспарцет зеленый тюк'],
+            tech: ['Трактор Беларус МТЗ-82', 'Пресс-подборщик Киргизстан', 'Плуг трехкорпусный навесной', 'Роторная косилка']
+        };
+        const gBreeds = {
+            cows: ['Швицкая', 'Алатауская', 'Черный Ангус', 'Местная', 'Герефорд'],
+            sheep: ['Гиссарская', 'Арашан', 'Меринос', 'Местная', 'Эдельбаевская'],
+            horses: ['Новокиргизская', 'Карабаирская', 'Донская', 'Местная'],
+            feed: ['-'],
+            tech: ['-']
+        };
+        const gRegions = ['Ошская обл.', 'Чуйская обл.', 'Джалал-Абадская обл.', 'Нарынская обл.', 'Иссык-Кульская обл.', 'Баткенская обл.', 'Таласская обл.'];
+        const gSettlements = {
+            'Ошская обл.': 'с. Жапалак (Рынок)', 'Чуйская обл.': 'г. Токмок (Рынок)',
+            'Джалал-Абадская обл.': 'г. Базар-Коргон', 'Нарынская обл.': 'г. Кочкор (Рынок)',
+            'Иссык-Кульская обл.': 'г. Каракол', 'Баткенская обл.': 'с. Халмион (Рынок)',
+            'Таласская обл.': 'г. Талас'
+        };
+        const gAuthors = ['Самат байке', 'Улан Токтосунов', 'Азамат Агро', 'Карим байке', 'Ислам фермер', 'Мирлан кочевник', 'Нурбек'];
+
+        window.onload = function() {
+            loadAllData();
+        };
+
+        function loadAllData() {
+            // Загрузка лотов
+            const stored = localStorage.getItem(STORAGE_KEY);
+            listings = stored ? JSON.parse(stored) : [];
+
+            listings = listings.map(item => {
+                if (item.startPrice === undefined) item.startPrice = item.price;
+                return item;
+            });
+
+            // Загрузка цен
+            const storedPrices = localStorage.getItem('agromarket_median_prices');
+            const prices = storedPrices ? JSON.parse(storedPrices) : { cows: 105000, sheep: 15000, horses: 130000, feed: 320, tech: 40000 };
+            
+            document.getElementById('median-cows').value = prices.cows;
+            document.getElementById('median-sheep').value = prices.sheep;
+            document.getElementById('median-horses').value = prices.horses;
+            document.getElementById('median-feed').value = prices.feed;
+
+            renderDashboard();
+            renderLogs();
+            renderBannedAuthors();
+        }
+
+        function renderDashboard() {
+            // Общая статистика
+            document.getElementById('stat-lots').innerText = listings.length;
+            
+            const banned = JSON.parse(localStorage.getItem('agromarket_banned_authors') || '[]');
+            document.getElementById('stat-banned').innerText = banned.length;
+
+            let totalBidsSum = 0;
+            listings.forEach(l => {
+                if (l.isAuction && l.bids) l.bids.forEach(b => totalBidsSum += b.amount);
+            });
+            document.getElementById('stat-bids').innerText = formatPrice(totalBidsSum) + ' сом';
+
+            // Наполнение интерактивного пульта
+            const container = document.getElementById('admin-table-container');
+            container.innerHTML = '';
+
+            if (listings.length === 0) {
+                container.innerHTML = `<div class="text-center text-xs text-slate-500 py-10">База пуста. Воспользуйтесь генератором или подайте лот с главного сайта.</div>`;
+                return;
+            }
+
+            const verifiedAuthors = JSON.parse(localStorage.getItem('agromarket_verified_authors') || '[]');
+
+            listings.forEach(l => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-950 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800/80 transition-all hover:border-slate-700/80 shadow-md";
+                
+                const topActive = l.isTop ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-900 hover:bg-slate-800 text-slate-400';
+                const auctionActive = l.isAuction ? 'bg-red-500 text-white font-black' : 'bg-slate-900 hover:bg-slate-800 text-slate-400';
+                const isVerified = verifiedAuthors.includes(l.author);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 truncate max-w-full md:max-w-[50%]">
+                        <div class="w-11 h-11 bg-slate-900 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 border border-slate-800">
+                            ${l.emoji || '🐂'}
+                        </div>
+                        <div class="truncate">
+                            <h4 class="font-extrabold text-xs text-slate-200 flex items-center gap-1.5 truncate">
+                                ${l.title}
+                                ${isVerified ? `<i class="fa-solid fa-circle-check text-emerald-500 text-[10px]" title="Проверен"></i>` : ''}
+                            </h4>
+                            <p class="text-[10px] text-slate-500 mt-0.5 font-bold truncate">${l.settlement} (${l.district}) • Автор: <b class="text-slate-400 underline">${l.author}</b></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between md:justify-end gap-4 border-t border-slate-800/50 pt-3 md:pt-0 md:border-0 flex-wrap sm:flex-nowrap">
+                        <div class="text-left md:text-right">
+                            <span class="text-[8px] text-slate-500 uppercase font-black block">Текущая цена</span>
+                            <b class="text-xs text-emerald-400 font-black">${formatPrice(l.price)} сом</b>
+                        </div>
+                        
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button onclick="adminToggleTop(${l.id})" class="text-[9px] px-2.5 py-1.5 rounded-xl font-bold transition-all border border-slate-800 ${topActive}"><i class="fa-solid fa-crown mr-1"></i> ТОП</button>
+                            <button onclick="adminToggleAuction(${l.id})" class="text-[9px] px-2.5 py-1.5 rounded-xl font-bold transition-all border border-slate-800 ${auctionActive}"><i class="fa-solid fa-gavel mr-1"></i> Аукцион</button>
+                            
+                            ${l.isAuction ? `<button onclick="adminAddFakeBid(${l.id})" class="bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-950 text-[9px] font-black px-2.5 py-1.5 rounded-xl transition-all"><i class="fa-solid fa-handshake"></i> + Ставка</button>` : ''}
+                            
+                            <button onclick="adminToggleVerification('${l.author}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-[9px] font-bold p-1.5 rounded-xl border border-blue-500/20 transition-all" title="Верифицировать фермера"><i class="fa-solid fa-user-check"></i></button>
+                            <button onclick="adminBanAuthor('${l.author}')" class="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white text-[9px] font-bold p-1.5 rounded-xl border border-rose-500/20 transition-all" title="Забанить спамера"><i class="fa-solid fa-user-slash"></i></button>
+                            <button onclick="adminDeleteLot(${l.id})" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[9px] font-bold p-1.5 rounded-xl border border-red-500/20 transition-all" title="Удалить лот"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- ГЕНЕРАТОР ТЕСТОВЫХ ЛОТОВ ---
+        function adminGenerateRandomLot(count) {
+            for (let i = 0; i < count; i++) {
+                const randomCat = gCats[Math.floor(Math.random() * gCats.length)];
+                const randomEmoji = gEmojis[randomCat];
+                const catTitles = gTitles[randomCat];
+                const randomTitle = catTitles[Math.floor(Math.random() * catTitles.length)];
+                const catBreeds = gBreeds[randomCat];
+                const randomBreed = catBreeds[Math.floor(Math.random() * catBreeds.length)];
+                const randomReg = gRegions[Math.floor(Math.random() * gRegions.length)];
+                const randomSet = gSettlements[randomReg];
+                const randomAuthor = gAuthors[Math.floor(Math.random() * gAuthors.length)];
+                
+                const randomPrice = randomCat === 'cows' ? Math.floor(Math.random() * 60000) + 70000
+                                  : randomCat === 'sheep' ? Math.floor(Math.random() * 12000) + 10000
+                                  : randomCat === 'horses' ? Math.floor(Math.random() * 80000) + 100000
+                                  : randomCat === 'feed' ? Math.floor(Math.random() * 200) + 250
+                                  : Math.floor(Math.random() * 30000) + 20000;
+
+                const randomWeight = randomCat === 'cows' ? Math.floor(Math.random() * 200) + 200
+                                   : randomCat === 'sheep' ? Math.floor(Math.random() * 50) + 40
+                                   : randomCat === 'horses' ? Math.floor(Math.random() * 150) + 250
+                                   : 20;
+
+                const randomAge = randomCat === 'feed' || randomCat === 'tech' ? null : Math.floor(Math.random() * 30) + 6;
+
+                const isAuction = Math.random() > 0.65;
+
+                const newL = {
+                    id: Date.now() + i,
+                    title: (isAuction ? '🔥 АУКЦИОН: ' : '') + randomTitle + ' (' + randomBreed + ')',
+                    category: randomCat,
+                    breed: randomBreed,
+                    ageMonths: randomAge,
+                    weight: randomWeight,
+                    gender: randomCat === 'feed' || randomCat === 'tech' ? '-' : (Math.random() > 0.5 ? 'самец' : 'самка'),
+                    desc: `Сгенерированный системой тестовый лот. Состояние отличное, привит, полностью готов к осмотру на рынке в ${randomSet}.`,
+                    price: randomPrice,
+                    startPrice: randomPrice,
+                    unit: randomCat === 'feed' ? 'сом/тюк' : (randomCat === 'sheep' && Math.random() > 0.5 ? 'сом/гол.' : 'сом'),
+                    district: randomReg,
+                    settlement: randomSet,
+                    phone: '+996 555 ' + Math.floor(Math.random()*900000 + 100000),
+                    author: randomAuthor,
+                    isMyListing: false,
+                    isAuction: isAuction,
+                    isTop: Math.random() > 0.8,
+                    views: Math.floor(Math.random() * 150) + 5,
+                    emoji: randomEmoji,
+                    date: 'Только что',
+                    bids: isAuction ? [{ name: 'Бектур', amount: randomPrice, time: '10 мин. назад' }] : []
+                };
+
+                listings.unshift(newL);
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            writeLog(`Генератор: Сгенерировано лотов: ${count} шт.`);
+            loadAllData();
+            showToastNotification(`Создано лотов: ${count}`);
+        }
+
+        // --- МОДЕРАЦИЯ И СТАТУСЫ ---
+        function adminToggleTop(id) {
+            const item = listings.find(l => l.id === id); if (!item) return;
+            item.isTop = !item.isTop;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            writeLog(`Модерация: Изменен ТОП-статус лота #${id} на [${item.isTop}]`);
+            loadAllData();
+        }
+
+        function adminToggleAuction(id) {
+            const item = listings.find(l => l.id === id); if (!item) return;
+            item.isAuction = !item.isAuction;
+            if (item.isAuction) {
+                item.title = '🔥 АУКЦИОН: ' + item.title.replace('🔥 АУКЦИОН: ', '');
+                item.bids = [{ name: 'Система', amount: item.price, time: 'Только что' }];
+            } else {
+                item.title = item.title.replace('🔥 АУКЦИОН: ', '');
+                item.bids = [];
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            writeLog(`Модерация: Изменен формат лота #${id} на [Аукцион: ${item.isAuction}]`);
+            loadAllData();
+        }
+
+        function adminAddFakeBid(id) {
+            const item = listings.find(l => l.id === id); if (!item) return;
+            item.price += 2000;
+            if (!item.bids) item.bids = [];
+            const bots = ['Улан', 'Бекзат', 'Азамат', 'Нурсултан', 'Канат', 'Ильяс'];
+            const bot = bots[Math.floor(Math.random() * bots.length)];
+            item.bids.unshift({ name: bot + ' (Бот)', amount: item.price, time: 'Только что' });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            writeLog(`Торги: Бот ${bot} поднял ставку лота #${id} до ${formatPrice(item.price)} сом`);
+            loadAllData();
+        }
+
+        function adminDeleteLot(id) {
+            listings = listings.filter(l => l.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+            writeLog(`Удаление: Лот #${id} полностью удален с платформы`);
+            loadAllData();
+        }
+
+        // --- ВЕРИФИКАЦИЯ («Проверенный фермер») ---
+        function adminToggleVerification(authorName) {
+            let verified = JSON.parse(localStorage.getItem('agromarket_verified_authors') || '[]');
+            if (verified.includes(authorName)) {
+                verified = verified.filter(a => a !== authorName);
+                writeLog(`Верификация: Снята галочка верификации с автора [${authorName}]`);
+            } else {
+                verified.push(authorName);
+                writeLog(`Верификация: Автор [${authorName}] получил статус Проверенного Фермера`);
+            }
+            localStorage.setItem('agromarket_verified_authors', JSON.stringify(verified));
+            loadAllData();
+        }
+
+        // --- ЧЕРНЫЙ СПИСОК (Бан авторов) ---
+        function adminBanAuthor(authorName) {
+            let banned = JSON.parse(localStorage.getItem('agromarket_banned_authors') || '[]');
+            if (!banned.includes(authorName)) {
+                banned.push(authorName);
+                localStorage.setItem('agromarket_banned_authors', JSON.stringify(banned));
+                writeLog(`Блокировка: Автор [${authorName}] заблокирован и внесен в черный список!`);
+                loadAllData();
+            } else {
+                showToastNotification('Пользователь уже заблокирован.');
+            }
+        }
+
+        function adminBanAuthorDirectly() {
+            const input = document.getElementById('blacklist-input');
+            const name = input.value.trim();
+            if (!name) return;
+            adminBanAuthor(name);
+            input.value = '';
+        }
+
+        function adminUnbanAuthor(authorName) {
+            let banned = JSON.parse(localStorage.getItem('agromarket_banned_authors') || '[]');
+            banned = banned.filter(a => a !== authorName);
+            localStorage.setItem('agromarket_banned_authors', JSON.stringify(banned));
+            writeLog(`Разблокировка: Автор [${authorName}] удален из черного списка`);
+            loadAllData();
+        }
+
+        function renderBannedAuthors() {
+            const container = document.getElementById('admin-banned-authors-list');
+            container.innerHTML = '';
+            const banned = JSON.parse(localStorage.getItem('agromarket_banned_authors') || '[]');
+
+            if (banned.length === 0) {
+                container.innerHTML = `<span class="text-[10px] text-slate-500 italic block">Черный список пуст</span>`;
+                return;
+            }
+
+            banned.forEach(a => {
+                const badge = document.createElement('div');
+                badge.className = "flex justify-between items-center bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold px-2.5 py-1.5 rounded-xl";
+                badge.innerHTML = `
+                    <span>👤 ${a}</span>
+                    <button onclick="adminUnbanAuthor('${a}')" class="hover:text-white transition-all"><i class="fa-solid fa-lock-open"></i></button>
+                `;
+                container.appendChild(badge);
+            });
+        }
+
+        // --- УПРАВЛЕНИЕ МЕДИАННЫМИ ЦЕНАМИ ---
+        function adminSaveMedianPrices() {
+            const prices = {
+                cows: parseFloat(document.getElementById('median-cows').value) || 105000,
+                sheep: parseFloat(document.getElementById('median-sheep').value) || 15000,
+                horses: parseFloat(document.getElementById('median-horses').value) || 130000,
+                feed: parseFloat(document.getElementById('median-feed').value) || 320,
+                tech: 40000
+            };
+            localStorage.setItem('agromarket_median_prices', JSON.stringify(prices));
+            writeLog(`Конфиг: Изменена сетка средних рыночных цен.`);
+            showToastNotification('Настройки цен сохранены!');
+            loadAllData();
+        }
+
+        // --- ЛОГИ ТЕРМИНАЛА ---
+        function writeLog(text) {
+            const logs = JSON.parse(localStorage.getItem('agromarket_admin_logs') || '[]');
+            const time = new Date().toLocaleTimeString();
+            logs.unshift(`[${time}] ${text}`);
+            if (logs.length > 50) logs.pop();
+            localStorage.setItem('agromarket_admin_logs', JSON.stringify(logs));
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const terminal = document.getElementById('admin-terminal');
+            if (!terminal) return;
+            const logs = JSON.parse(localStorage.getItem('agromarket_admin_logs') || '[]');
+            terminal.innerHTML = logs.length === 0 
+                ? `<p class="text-slate-600 italic">// Ожидание системных событий...</p>`
+                : logs.map(l => `<p>${l}</p>`).join('');
+            terminal.scrollTop = 0;
+        }
+
+        function adminClearLogs() {
+            localStorage.removeItem('agromarket_admin_logs');
+            renderLogs();
+        }
+
+        function adminResetDatabase() {
+            if (confirm('Вы действительно хотите стереть текущую базу и восстановить изначальные лоты? Все баны и настройки сбросятся.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem('agromarket_median_prices');
+                localStorage.removeItem('agromarket_banned_authors');
+                localStorage.removeItem('agromarket_verified_authors');
+                localStorage.removeItem('agromarket_admin_logs');
+                window.location.reload();
+            }
+        }
+
+        function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\n))/g, " "); }
+        
+        function showToastNotification(txt) {
+            const t = document.createElement('div');
+            t.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 text-[10px] font-black px-4 py-2.5 rounded-2xl shadow-xl z-55 border border-amber-400 animate-slide-up";
+            t.innerText = `⚡ ${txt}`; document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+    </script>
+</body>
+</html>
